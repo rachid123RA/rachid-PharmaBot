@@ -1,0 +1,87 @@
+version: '3.8'
+
+# PharmaBot — Docker Compose
+# Compatible macOS ARM64 (Apple Silicon M1/M2/M3) + Ubuntu 22.04
+#
+# Usage:
+#   docker compose run pharmabot-tests           → Tests Phase 1+2 (10/10)
+#   docker compose run pharmabot-p34             → Tests Phase 3+4 (22/22)
+#   docker compose run pharmabot-shell           → Shell ROS2 interactif
+#   docker compose run pharmabot-rt              → EDF Scheduler seul
+
+services:
+
+  # ── Tests Phase 1+2 (10 scénarios) ──────────────────────────────────
+  pharmabot-tests:
+    build: .
+    platform: linux/arm64
+    container_name: pharmabot_tests_p12
+    volumes:
+      - ./tests:/ros2_ws/tests:ro
+      - ./reports:/ros2_ws/reports
+    working_dir: /ros2_ws
+    command: python3 tests/run_tests_phase1_phase2.py -v
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # ── Tests Phase 3+4 (22 scénarios) ──────────────────────────────────
+  pharmabot-p34:
+    build: .
+    platform: linux/arm64
+    container_name: pharmabot_tests_p34
+    volumes:
+      - ./tests:/ros2_ws/tests:ro
+      - ./reports:/ros2_ws/reports
+    working_dir: /ros2_ws
+    command: python3 tests/run_tests_phase3_phase4.py -v
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # ── Shell ROS2 interactif (tous les nœuds disponibles) ───────────────
+  pharmabot-shell:
+    build: .
+    platform: linux/arm64
+    container_name: pharmabot_shell
+    volumes:
+      - ./hospital_robot_spawner:/ros2_ws/src/hospital_robot_spawner:ro
+      - ./tests:/ros2_ws/tests:ro
+    working_dir: /ros2_ws
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+    environment:
+      - ROS_DOMAIN_ID=42
+      - PYTHONUNBUFFERED=1
+
+  # ── EDF RT Scheduler (nœud seul, sans Gazebo) ────────────────────────
+  pharmabot-rt:
+    build: .
+    platform: linux/arm64
+    container_name: pharmabot_rt_scheduler
+    working_dir: /ros2_ws
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source install/setup.bash 2>/dev/null || true &&
+        ros2 run hospital_robot_spawner rt_scheduler
+      "
+    environment:
+      - ROS_DOMAIN_ID=42
+      - PYTHONUNBUFFERED=1
+
+  # ── Tous les nœuds Phase 1+2 (sans Gazebo) ───────────────────────────
+  pharmabot-nodes:
+    build: .
+    platform: linux/arm64
+    container_name: pharmabot_all_nodes
+    working_dir: /ros2_ws
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source install/setup.bash 2>/dev/null || true &&
+        ros2 launch hospital_robot_spawner pharmabot_full.launch.py
+      "
+    environment:
+      - ROS_DOMAIN_ID=42
+      - PYTHONUNBUFFERED=1
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
