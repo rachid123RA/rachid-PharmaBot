@@ -11,8 +11,12 @@ RUN apt-get update && apt-get install -y \
     python3-rosdep \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer les dépendances Python
+# Installer les dépendances Python (CPU only — pas de CUDA pour Mac)
+# torch CPU seulement pour éviter les téléchargements CUDA de 2GB+
 RUN pip3 install --no-cache-dir \
+    --index-url https://download.pytorch.org/whl/cpu \
+    "torch>=1.13" && \
+    pip3 install --no-cache-dir \
     "stable-baselines3==2.3.2" \
     "gymnasium==0.29.1" \
     "numpy<2.0" \

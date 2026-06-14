@@ -1,0 +1,15 @@
+# PharmaBot — Image LÉGÈRE pour les tests Python
+# Pas de ROS2, pas de PyTorch, pas de CUDA
+# Les tests run_tests_*.py sont 100% Python stdlib
+FROM python:3.10-slim
+
+WORKDIR /ros2_ws
+
+# Copier uniquement les tests et le code source
+COPY tests/ tests/
+COPY hospital_robot_spawner/hospital_robot_spawner/ hospital_robot_spawner/
+
+# Aucune dépendance externe — stdlib Python uniquement
+# Les tests simulent ROS2 sans l'installer
+
+CMD ["python3", "tests/run_tests_phase3_phase4.py", "-v"]

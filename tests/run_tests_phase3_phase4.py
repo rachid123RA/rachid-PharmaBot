@@ -148,6 +148,10 @@ class SimAutonomousNavigator:
         self._mission_interrompue = None
         self._nav_start  = None
         self._goal_reached_event = threading.Event()  # flag: GOAL_REACHED atteint
+        # Déduplication: évite de compter 2x la même requête
+        # (race condition scheduler._on_livraison + _pub_tache)
+        self._last_req_id: int   = -1
+        self._last_req_ts: float = 0.0
 
         self.stats = {
             "missions_total":          0,
@@ -191,9 +195,17 @@ class SimAutonomousNavigator:
         type_rt = msg.get("type_rt", "")
         if not dept or dept == "pharmacie":
             return
+
+        req_id = msg.get("requete_id", -1)
+        req_ts = msg.get("timestamp", 0.0)
+
         with self._lock:
             already = self._dept_cible == dept and self._state == "MOVING"
-        if already:
+            # Déduplication : même requête_id ET même timestamp = double-publish
+            # du scheduler (race condition _on_livraison + ajouter → _pub_tache)
+            is_dup = (req_id == self._last_req_id and req_ts == self._last_req_ts)
+
+        if already or is_dup:
             return
 
         # Override HARD_RT : interrompre uniquement si mission vraiment en cours
@@ -214,8 +226,10 @@ class SimAutonomousNavigator:
             })
 
         with self._lock:
-            self._mission    = msg
-            self._dept_cible = dept
+            self._mission      = msg
+            self._dept_cible   = dept
+            self._last_req_id  = req_id
+            self._last_req_ts  = req_ts
             self.stats["missions_total"] += 1
             self._nav_start = time.time()
 
