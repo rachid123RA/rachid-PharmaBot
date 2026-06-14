@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ROS2 build artifacts
+install/
+build/
+log/
+*.devel
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Test reports & logs
+tests/reports/*.json
+tests/__pycache__/
+reports/
+
+# RL training checkpoints (heavy files)
+# Keep rl_models/*.zip (final agents) but ignore intermediate checkpoints
+rl_models/checkpoints/
+
+# Gazebo
+.gazebo/
+*.bag
+*.db3
+
+# Docker
+.docker/
+
+# Environment files
+.env
+.env.local
+*.secret
+
+# Compiled models
+*.so
+*.dylib
+*.dll
