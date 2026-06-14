@@ -5,9 +5,10 @@ FROM python:3.10-slim
 
 WORKDIR /ros2_ws
 
-# Copier uniquement les tests et le code source
+# Copier uniquement les tests, la démo et le code source
 COPY tests/ tests/
 COPY hospital_robot_spawner/hospital_robot_spawner/ hospital_robot_spawner/
+COPY demo_robot.py demo_robot.py
 
 # Aucune dépendance externe — stdlib Python uniquement
 # Les tests simulent ROS2 sans l'installer

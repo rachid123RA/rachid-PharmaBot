@@ -6,15 +6,33 @@ version: '3.8'
 # ┌─────────────────────────────────────────────────────────────────────────┐
 # │  COMMANDES RAPIDES                                                      │
 # │                                                                         │
-# │  Tests Python (LÉGER, ~50MB, 30 secondes) :                             │
+# │  🤖 DÉMO ROBOT (voir le robot travailler) :                             │
+# │    docker compose run pharmabot-demo                                    │
+# │                                                                         │
+# │  🧪 Tests Python (LÉGER, ~50MB, 30 secondes) :                          │
 # │    docker compose run pharmabot-tests                                   │
 # │    docker compose run pharmabot-p34                                     │
 # │                                                                         │
-# │  Shell ROS2 interactif (COMPLET, ~3GB, 5 min à builder) :              │
+# │  🐳 Shell ROS2 interactif (COMPLET, ~3GB, 5 min à builder) :           │
 # │    docker compose run pharmabot-shell                                   │
 # └─────────────────────────────────────────────────────────────────────────┘
 
 services:
+
+  # ── 🤖 DÉMO ROBOT (voir le robot en action, terminal visuel) ────────────
+  pharmabot-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    image: pharmabot-tests:latest
+    container_name: pharmabot_demo
+    working_dir: /ros2_ws
+    command: python3 demo_robot.py
+    stdin_open: true
+    tty: true
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TERM=xterm-256color
 
   # ── Tests Phase 1+2 (LÉGER — Python 3.10 slim, ~50MB) ──────────────────
   pharmabot-tests:
