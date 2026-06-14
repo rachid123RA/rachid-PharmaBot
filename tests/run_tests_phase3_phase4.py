@@ -1013,10 +1013,18 @@ def s16_kpi_navigation() -> Resultat:
         dept = depts[i % 3]
         env.req(dept, random.choice(MEDICAMENTS[dept]))
         # Attendre que chaque mission soit traitée avant la suivante
-        env.attendre_nav_state("GOAL_REACHED", 5.0)
-        time.sleep(0.05)
+        # Timeout 8s pour Docker (x86_64 emulation plus lent que Mac natif)
+        env.attendre_nav_state("GOAL_REACHED", 8.0)
+        time.sleep(0.08)
 
-    time.sleep(0.3)
+    # Attente finale : garantir que la dernière navigation est comptabilisée
+    # (missions_success incrémenté avant event, mais sleep sécurise Docker)
+    deadline = time.time() + 5.0
+    while time.time() < deadline:
+        if env.nav_p3.stats["missions_success"] >= N:
+            break
+        time.sleep(0.05)
+    time.sleep(0.1)
 
     m = env.nav_p3.metrics
     r.info(f"KPI navigation Phase 3 :")
