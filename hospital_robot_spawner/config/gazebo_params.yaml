@@ -1,0 +1,22 @@
+# PharmaBot — Paramètres Gazebo
+# Compatible Gazebo Classic 11 + ROS2 Humble
+
+gazebo:
+  ros__parameters:
+    publish_rate: 50.0
+    namespace: ""
+
+pharmabot_gazebo_bridge:
+  ros__parameters:
+    update_rate: 20.0
+    robot_namespace: "/demo"
+    # Coordonnées des salles
+    salles:
+      pharmacie:    [1.0, 16.0]
+      reanimation:  [11.0, 5.5]
+      urgences:     [-5.0, -6.6]
+      consultation: [-2.0, -27.0]
+    # Hauteur de dépôt des boîtes
+    hauteur_table: 0.97
+    # Hauteur de transport sur le robot
+    hauteur_robot: 0.40

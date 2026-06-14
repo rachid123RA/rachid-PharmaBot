@@ -177,6 +177,16 @@ def generate_launch_description():
         )
     ])
 
+    # ── Gazebo Bridge 3D (médicaments physiques) à t+10s ──
+    gazebo_bridge = TimerAction(period=10.0, actions=[
+        Node(
+            package='hospital_robot_spawner',
+            executable='gazebo_bridge',
+            name='pharmabot_gazebo_bridge',
+            output='screen',
+        )
+    ])
+
     # ── Agent RL (backup navigation) à t+15s ──
     # Démarré en dernier, l'autonomous_navigator prend la priorité
     trained_agent = TimerAction(period=15.0, actions=[
@@ -201,6 +211,7 @@ def generate_launch_description():
         doctor,
         autonomous_nav,
         nav_watchdog_p3,
+        gazebo_bridge,
         perception,
         dashboard_p4,
         trained_agent,

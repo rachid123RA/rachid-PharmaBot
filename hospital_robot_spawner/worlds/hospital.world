@@ -1,0 +1,767 @@
+<?xml version="1.0"?>
+<!--
+  hospital.world — Monde Gazebo 3D pour PharmaBot
+  Hôpital complet avec :
+    - Pharmacie (1.0, 16.0)  — sol BLEU
+    - Réanimation/ICU (11.0, 5.5)   — sol ROUGE
+    - Urgences (-5.0, -6.6)  — sol ORANGE
+    - Consultation (-2.0, -27.0) — sol VERT
+    - Couloir central + couloirs secondaires
+    - Étagère médicaments dans la pharmacie
+    - Tables de livraison dans chaque département
+    - Robot Pioneer 3AT (à spawner via spawn_demo)
+-->
+<sdf version="1.6">
+<world name="hospital">
+
+  <!-- ══════════════════════════ PHYSIQUE ══════════════════════════ -->
+  <physics type="ode">
+    <real_time_update_rate>1000</real_time_update_rate>
+    <max_step_size>0.001</max_step_size>
+    <real_time_factor>1</real_time_factor>
+    <ode>
+      <solver>
+        <type>quick</type>
+        <iters>50</iters>
+        <sor>1.3</sor>
+      </solver>
+    </ode>
+  </physics>
+
+  <!-- ══════════════════════════ LUMIÈRES ══════════════════════════ -->
+  <light name="sun" type="directional">
+    <cast_shadows>true</cast_shadows>
+    <pose>0 0 20 0 0 0</pose>
+    <diffuse>0.9 0.9 0.9 1</diffuse>
+    <specular>0.2 0.2 0.2 1</specular>
+    <direction>-0.5 0.1 -0.9</direction>
+    <attenuation>
+      <range>1000</range>
+      <constant>0.9</constant>
+      <linear>0.01</linear>
+      <quadratic>0.001</quadratic>
+    </attenuation>
+  </light>
+
+  <!-- Lumières intérieures de l'hôpital -->
+  <light name="light_pharmacy" type="point">
+    <pose>1.0 16.0 2.8 0 0 0</pose>
+    <diffuse>0.6 0.6 1.0 1</diffuse>
+    <specular>0.1 0.1 0.3 1</specular>
+    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+    <cast_shadows>false</cast_shadows>
+  </light>
+  <light name="light_icu" type="point">
+    <pose>11.0 5.5 2.8 0 0 0</pose>
+    <diffuse>1.0 0.5 0.5 1</diffuse>
+    <specular>0.3 0.1 0.1 1</specular>
+    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+    <cast_shadows>false</cast_shadows>
+  </light>
+  <light name="light_emergency" type="point">
+    <pose>-5.0 -6.6 2.8 0 0 0</pose>
+    <diffuse>1.0 0.65 0.3 1</diffuse>
+    <specular>0.3 0.2 0.1 1</specular>
+    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+    <cast_shadows>false</cast_shadows>
+  </light>
+  <light name="light_consultation" type="point">
+    <pose>-2.0 -27.0 2.8 0 0 0</pose>
+    <diffuse>0.5 1.0 0.5 1</diffuse>
+    <specular>0.1 0.3 0.1 1</specular>
+    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+    <cast_shadows>false</cast_shadows>
+  </light>
+
+  <!-- ══════════════════════════ SOL GÉNÉRAL ══════════════════════ -->
+  <model name="hospital_floor">
+    <static>true</static>
+    <pose>0 -5 0 0 0 0</pose>
+    <link name="floor_link">
+      <collision name="floor_col">
+        <geometry><box><size>42 70 0.1</size></box></geometry>
+      </collision>
+      <visual name="floor_vis">
+        <geometry><box><size>42 70 0.1</size></box></geometry>
+        <material>
+          <ambient>0.85 0.85 0.85 1</ambient>
+          <diffuse>0.85 0.85 0.85 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════════════════════════ MURS EXTÉRIEURS ════════════════════ -->
+  <!-- Mur Nord -->
+  <model name="wall_north">
+    <static>true</static>
+    <pose>2 23 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>42 0.3 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>42 0.3 3.0</size></box></geometry>
+        <material><ambient>0.9 0.9 0.9 1</ambient><diffuse>0.9 0.9 0.9 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Sud -->
+  <model name="wall_south">
+    <static>true</static>
+    <pose>2 -33 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>42 0.3 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>42 0.3 3.0</size></box></geometry>
+        <material><ambient>0.9 0.9 0.9 1</ambient><diffuse>0.9 0.9 0.9 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Est -->
+  <model name="wall_east">
+    <static>true</static>
+    <pose>22 -5 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.3 56 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.3 56 3.0</size></box></geometry>
+        <material><ambient>0.9 0.9 0.9 1</ambient><diffuse>0.9 0.9 0.9 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Ouest -->
+  <model name="wall_west">
+    <static>true</static>
+    <pose>-18 -5 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.3 56 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.3 56 3.0</size></box></geometry>
+        <material><ambient>0.9 0.9 0.9 1</ambient><diffuse>0.9 0.9 0.9 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════════════════════════ COULOIR CENTRAL ════════════════════ -->
+  <model name="corridor_floor">
+    <static>true</static>
+    <pose>1 -5 0.05 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>4 54 0.02</size></box></geometry>
+        <material>
+          <ambient>0.75 0.75 0.8 1</ambient>
+          <diffuse>0.75 0.75 0.8 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════════════════════ 🟦 PHARMACIE (1.0, 16.0) ════════════════ -->
+  <!-- Sol bleu pharmacie -->
+  <model name="pharmacy_floor">
+    <static>true</static>
+    <pose>1.0 16.0 0.06 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>12 8 0.02</size></box></geometry>
+        <material>
+          <ambient>0.2 0.4 0.9 1</ambient>
+          <diffuse>0.2 0.4 0.9 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Nord pharmacie -->
+  <model name="pharmacy_wall_north">
+    <static>true</static>
+    <pose>1.0 20.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>12 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>12 0.2 3.0</size></box></geometry>
+        <material><ambient>0.8 0.85 1.0 1</ambient><diffuse>0.8 0.85 1.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Est pharmacie -->
+  <model name="pharmacy_wall_east">
+    <static>true</static>
+    <pose>7.0 16.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 8 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 8 3.0</size></box></geometry>
+        <material><ambient>0.8 0.85 1.0 1</ambient><diffuse>0.8 0.85 1.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Ouest pharmacie -->
+  <model name="pharmacy_wall_west">
+    <static>true</static>
+    <pose>-5.0 16.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 8 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 8 3.0</size></box></geometry>
+        <material><ambient>0.8 0.85 1.0 1</ambient><diffuse>0.8 0.85 1.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Sud pharmacie (avec ouverture pour couloir) -->
+  <model name="pharmacy_wall_south_left">
+    <static>true</static>
+    <pose>-3.0 12.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>4 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>4 0.2 3.0</size></box></geometry>
+        <material><ambient>0.8 0.85 1.0 1</ambient><diffuse>0.8 0.85 1.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="pharmacy_wall_south_right">
+    <static>true</static>
+    <pose>5.0 12.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>4 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>4 0.2 3.0</size></box></geometry>
+        <material><ambient>0.8 0.85 1.0 1</ambient><diffuse>0.8 0.85 1.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════ ÉTAGÈRE MÉDICAMENTS (Pharmacie) ══════ -->
+  <model name="pharmacy_shelf_back">
+    <static>true</static>
+    <pose>0 19.3 1.0 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>8 0.4 2.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>8 0.4 2.0</size></box></geometry>
+        <material><ambient>0.6 0.4 0.2 1</ambient><diffuse>0.6 0.4 0.2 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Planches de l'étagère -->
+  <model name="shelf_plank_1">
+    <static>true</static>
+    <pose>0 19.0 0.5 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>7.5 0.3 0.05</size></box></geometry>
+        <material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="shelf_plank_2">
+    <static>true</static>
+    <pose>0 19.0 1.1 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>7.5 0.3 0.05</size></box></geometry>
+        <material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="shelf_plank_3">
+    <static>true</static>
+    <pose>0 19.0 1.7 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>7.5 0.3 0.05</size></box></geometry>
+        <material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Boîtes de médicaments sur l'étagère -->
+  <model name="med_box_shelf_1">
+    <static>true</static>
+    <pose>-3 18.9 0.6 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.25 0.15 0.2</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.25 0.15 0.2</size></box></geometry>
+        <material><ambient>1 0.2 0.2 1</ambient><diffuse>1 0.2 0.2 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="med_box_shelf_2">
+    <static>true</static>
+    <pose>-2 18.9 0.6 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.25 0.15 0.2</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.25 0.15 0.2</size></box></geometry>
+        <material><ambient>0.2 0.8 0.2 1</ambient><diffuse>0.2 0.8 0.2 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="med_box_shelf_3">
+    <static>true</static>
+    <pose>-1 18.9 0.6 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.25 0.15 0.2</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.25 0.15 0.2</size></box></geometry>
+        <material><ambient>0.2 0.2 1 1</ambient><diffuse>0.2 0.2 1 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="med_box_shelf_4">
+    <static>true</static>
+    <pose>0 18.9 0.6 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.25 0.15 0.2</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.25 0.15 0.2</size></box></geometry>
+        <material><ambient>1 0.8 0.0 1</ambient><diffuse>1 0.8 0.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="med_box_shelf_5">
+    <static>true</static>
+    <pose>1 18.9 0.6 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.25 0.15 0.2</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.25 0.15 0.2</size></box></geometry>
+        <material><ambient>0.8 0.2 0.8 1</ambient><diffuse>0.8 0.2 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="med_box_shelf_6">
+    <static>true</static>
+    <pose>2 18.9 0.6 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.25 0.15 0.2</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.25 0.15 0.2</size></box></geometry>
+        <material><ambient>0 0.9 0.9 1</ambient><diffuse>0 0.9 0.9 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Table de préparation pharmacie -->
+  <model name="pharmacy_prep_table">
+    <static>true</static>
+    <pose>1.0 14.5 0.4 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>3.0 1.0 0.8</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>3.0 1.0 0.8</size></box></geometry>
+        <material><ambient>0.9 0.9 1.0 1</ambient><diffuse>0.9 0.9 1.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Panneau PHARMACIE -->
+  <model name="sign_pharmacy">
+    <static>true</static>
+    <pose>1.0 19.7 2.5 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>3.0 0.05 0.5</size></box></geometry>
+        <material><ambient>0.1 0.1 0.9 1</ambient><diffuse>0.1 0.1 0.9 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════════════════════ 🟥 RÉANIMATION (11.0, 5.5) ══════════════ -->
+  <!-- Sol rouge réanimation -->
+  <model name="icu_floor">
+    <static>true</static>
+    <pose>11.0 5.5 0.06 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>10 8 0.02</size></box></geometry>
+        <material>
+          <ambient>0.9 0.2 0.2 1</ambient>
+          <diffuse>0.9 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Nord ICU -->
+  <model name="icu_wall_north">
+    <static>true</static>
+    <pose>11.0 9.5 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>10 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>10 0.2 3.0</size></box></geometry>
+        <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Est ICU -->
+  <model name="icu_wall_east">
+    <static>true</static>
+    <pose>16.0 5.5 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 8 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 8 3.0</size></box></geometry>
+        <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Sud ICU -->
+  <model name="icu_wall_south">
+    <static>true</static>
+    <pose>11.0 1.5 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>10 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>10 0.2 3.0</size></box></geometry>
+        <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Ouest ICU (avec ouverture) -->
+  <model name="icu_wall_west_top">
+    <static>true</static>
+    <pose>6.0 8.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 3 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 3 3.0</size></box></geometry>
+        <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="icu_wall_west_bottom">
+    <static>true</static>
+    <pose>6.0 3.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 3 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 3 3.0</size></box></geometry>
+        <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Couloir vers ICU -->
+  <model name="corridor_icu">
+    <static>true</static>
+    <pose>4.5 5.5 0.055 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>3 4 0.02</size></box></geometry>
+        <material><ambient>0.75 0.75 0.8 1</ambient><diffuse>0.75 0.75 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Lits réanimation -->
+  <model name="icu_bed_1">
+    <static>true</static>
+    <pose>13.0 7.5 0.4 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>2.0 0.9 0.6</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>2.0 0.9 0.6</size></box></geometry>
+        <material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="icu_bed_2">
+    <static>true</static>
+    <pose>13.0 5.5 0.4 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>2.0 0.9 0.6</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>2.0 0.9 0.6</size></box></geometry>
+        <material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Table livraison ICU -->
+  <model name="delivery_table_icu">
+    <static>true</static>
+    <pose>11.0 5.5 0.45 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.8 0.8 0.9</size></box></geometry>
+        <material><ambient>0.9 0.5 0.1 1</ambient><diffuse>0.9 0.5 0.1 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Panneau RÉANIMATION -->
+  <model name="sign_icu">
+    <static>true</static>
+    <pose>11.0 9.2 2.5 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>4.0 0.05 0.5</size></box></geometry>
+        <material><ambient>0.9 0.1 0.1 1</ambient><diffuse>0.9 0.1 0.1 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ════════════════════ 🟧 URGENCES (-5.0, -6.6) ════════════════════ -->
+  <!-- Sol orange urgences -->
+  <model name="emergency_floor">
+    <static>true</static>
+    <pose>-5.0 -6.6 0.06 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>10 8 0.02</size></box></geometry>
+        <material>
+          <ambient>0.95 0.5 0.1 1</ambient>
+          <diffuse>0.95 0.5 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Nord Urgences -->
+  <model name="emergency_wall_north">
+    <static>true</static>
+    <pose>-5.0 -2.6 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>10 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>10 0.2 3.0</size></box></geometry>
+        <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Sud Urgences -->
+  <model name="emergency_wall_south">
+    <static>true</static>
+    <pose>-5.0 -10.6 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>10 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>10 0.2 3.0</size></box></geometry>
+        <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Ouest Urgences -->
+  <model name="emergency_wall_west">
+    <static>true</static>
+    <pose>-10.0 -6.6 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 8 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 8 3.0</size></box></geometry>
+        <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Mur Est Urgences (avec ouverture) -->
+  <model name="emergency_wall_east_top">
+    <static>true</static>
+    <pose>0.0 -4.1 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 4.5 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 4.5 3.0</size></box></geometry>
+        <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="emergency_wall_east_bottom">
+    <static>true</static>
+    <pose>0.0 -9.1 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 4.5 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 4.5 3.0</size></box></geometry>
+        <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Couloir vers Urgences -->
+  <model name="corridor_emergency">
+    <static>true</static>
+    <pose>-2.5 -6.6 0.055 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>3 4 0.02</size></box></geometry>
+        <material><ambient>0.75 0.75 0.8 1</ambient><diffuse>0.75 0.75 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Équipements urgences -->
+  <model name="emergency_gurney">
+    <static>true</static>
+    <pose>-8.0 -5.0 0.4 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>1.8 0.7 0.6</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>1.8 0.7 0.6</size></box></geometry>
+        <material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Table livraison Urgences -->
+  <model name="delivery_table_emergency">
+    <static>true</static>
+    <pose>-5.0 -6.6 0.45 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.8 0.8 0.9</size></box></geometry>
+        <material><ambient>0.9 0.5 0.1 1</ambient><diffuse>0.9 0.5 0.1 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Panneau URGENCES -->
+  <model name="sign_emergency">
+    <static>true</static>
+    <pose>-5.0 -2.8 2.5 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>3.5 0.05 0.5</size></box></geometry>
+        <material><ambient>0.95 0.4 0.0 1</ambient><diffuse>0.95 0.4 0.0 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ════════════════════ 🟩 CONSULTATION (-2.0, -27.0) ══════════════ -->
+  <!-- Sol vert consultation -->
+  <model name="consultation_floor">
+    <static>true</static>
+    <pose>-2.0 -27.0 0.06 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>10 8 0.02</size></box></geometry>
+        <material>
+          <ambient>0.2 0.8 0.3 1</ambient>
+          <diffuse>0.2 0.8 0.3 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+  <!-- Murs Consultation -->
+  <model name="consultation_wall_north">
+    <static>true</static>
+    <pose>-2.0 -23.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>10 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>10 0.2 3.0</size></box></geometry>
+        <material><ambient>0.7 1.0 0.7 1</ambient><diffuse>0.7 1.0 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="consultation_wall_south">
+    <static>true</static>
+    <pose>-2.0 -31.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>10 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>10 0.2 3.0</size></box></geometry>
+        <material><ambient>0.7 1.0 0.7 1</ambient><diffuse>0.7 1.0 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="consultation_wall_east">
+    <static>true</static>
+    <pose>3.0 -27.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 8 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 8 3.0</size></box></geometry>
+        <material><ambient>0.7 1.0 0.7 1</ambient><diffuse>0.7 1.0 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <model name="consultation_wall_west">
+    <static>true</static>
+    <pose>-7.0 -27.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.2 8 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.2 8 3.0</size></box></geometry>
+        <material><ambient>0.7 1.0 0.7 1</ambient><diffuse>0.7 1.0 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Ouverture nord consultation -->
+  <model name="consultation_wall_north_west">
+    <static>true</static>
+    <pose>-5.5 -23.0 1.5 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>3 0.2 3.0</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>3 0.2 3.0</size></box></geometry>
+        <material><ambient>0.7 1.0 0.7 1</ambient><diffuse>0.7 1.0 0.7 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Couloir vers Consultation -->
+  <model name="corridor_consultation">
+    <static>true</static>
+    <pose>-2.0 -20.5 0.055 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>4 6 0.02</size></box></geometry>
+        <material><ambient>0.75 0.75 0.8 1</ambient><diffuse>0.75 0.75 0.8 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Bureau consultation -->
+  <model name="consultation_desk">
+    <static>true</static>
+    <pose>0 -29.0 0.4 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>2.0 1.0 0.75</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>2.0 1.0 0.75</size></box></geometry>
+        <material><ambient>0.5 0.35 0.15 1</ambient><diffuse>0.5 0.35 0.15 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Table livraison Consultation -->
+  <model name="delivery_table_consultation">
+    <static>true</static>
+    <pose>-2.0 -27.0 0.45 0 0 0</pose>
+    <link name="link">
+      <collision name="col"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision>
+      <visual name="vis">
+        <geometry><box><size>0.8 0.8 0.9</size></box></geometry>
+        <material><ambient>0.9 0.5 0.1 1</ambient><diffuse>0.9 0.5 0.1 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+  <!-- Panneau CONSULTATION -->
+  <model name="sign_consultation">
+    <static>true</static>
+    <pose>-2.0 -23.2 2.5 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>4.0 0.05 0.5</size></box></geometry>
+        <material><ambient>0.1 0.7 0.2 1</ambient><diffuse>0.1 0.7 0.2 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════════════════════ PLAFOND ══════════════════════════════════ -->
+  <model name="hospital_ceiling">
+    <static>true</static>
+    <pose>2 -5 3.0 0 0 0</pose>
+    <link name="link">
+      <visual name="vis">
+        <geometry><box><size>42 70 0.1</size></box></geometry>
+        <material>
+          <ambient>0.95 0.95 0.95 0.3</ambient>
+          <diffuse>0.95 0.95 0.95 0.3</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ══════════════════════ PLUGIN ROS2 GAZEBO ════════════════════════ -->
+  <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+    <ros>
+      <namespace>/</namespace>
+      <remapping>model_states:=/gazebo/model_states</remapping>
+      <remapping>link_states:=/gazebo/link_states</remapping>
+    </ros>
+    <update_rate>20.0</update_rate>
+  </plugin>
+
+</world>
+</sdf>

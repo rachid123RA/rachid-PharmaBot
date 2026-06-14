@@ -28,6 +28,11 @@ setup(
          glob('./models/Target/model.sdf')),
         (os.path.join('share', package_name, 'models/Target/'),
          glob('./models/Target/model.config')),
+        # ── Modèles Gazebo Phase 3 : médicaments ──
+        (os.path.join('share', package_name, 'models/medication_box/'),
+         glob('./models/medication_box/model.sdf')),
+        (os.path.join('share', package_name, 'models/medication_box/'),
+         glob('./models/medication_box/model.config')),
         (os.path.join('share', package_name, 'rl_models/'),
          glob('./rl_models/*.zip')),
     ],
@@ -63,6 +68,8 @@ setup(
             # ── NOUVEAUX nœuds Phase 4 — Perception & Dashboard avancé ──
             'perception_node = hospital_robot_spawner.perception_node:main',
             'dashboard_p4    = hospital_robot_spawner.visual_dashboard_p4:main',
+            # ── Gazebo 3D Bridge — médicaments physiques ──
+            'gazebo_bridge   = hospital_robot_spawner.pharmabot_gazebo_bridge:main',
         ],
     },
 )
