@@ -451,12 +451,306 @@
       <child_frame_id>base_link</child_frame_id>
       <odom_publish_frequency>20</odom_publish_frequency>
     </plugin>
+
+    <!-- RGB CAMERA -->
+    <link name="cam_rgb_link">
+      <pose>0.28 0 0.74 0 0 0</pose>
+      <inertial><mass>0.05</mass><inertia><ixx>0.0001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0001</iyy><iyz>0</iyz><izz>0.0001</izz></inertia></inertial>
+      <visual name="cam_body"><geometry><box><size>0.04 0.08 0.04</size></box></geometry>
+        <material><ambient>0.12 0.12 0.14 1</ambient><diffuse>0.12 0.12 0.14 1</diffuse></material></visual>
+      <visual name="cam_lens"><pose>0.022 0 0 0 1.5707 0</pose><geometry><cylinder><radius>0.014</radius><length>0.01</length></cylinder></geometry>
+        <material><ambient>0.05 0.1 0.3 1</ambient><diffuse>0.05 0.1 0.3 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
+      <sensor name="rgb_camera" type="camera">
+        <pose>0 0 0 0 0 0</pose><topic>/demo/camera/rgb</topic><update_rate>15</update_rate>
+        <camera><horizontal_fov>1.047</horizontal_fov>
+          <image><width>640</width><height>480</height><format>R8G8B8</format></image>
+          <clip><near>0.05</near><far>10.0</far></clip></camera>
+        <always_on>1</always_on><visualize>false</visualize>
+      </sensor>
+    </link>
+    <joint name="cam_rgb_j" type="fixed"><parent>base_link</parent><child>cam_rgb_link</child></joint>
+
+    <!-- DEPTH CAMERA -->
+    <link name="cam_depth_link">
+      <pose>0.26 0 0.70 0 0 0</pose>
+      <inertial><mass>0.08</mass><inertia><ixx>0.0001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0001</iyy><iyz>0</iyz><izz>0.0001</izz></inertia></inertial>
+      <visual name="depth_body"><geometry><box><size>0.05 0.06 0.03</size></box></geometry>
+        <material><ambient>0.12 0.12 0.14 1</ambient><diffuse>0.12 0.12 0.14 1</diffuse></material></visual>
+      <visual name="depth_led"><pose>0.026 0 0.008 0 1.5707 0</pose><geometry><cylinder><radius>0.006</radius><length>0.01</length></cylinder></geometry>
+        <material><ambient>0.9 0.15 0 1</ambient><diffuse>0.9 0.15 0 1</diffuse><emissive>0.35 0.05 0 1</emissive></material></visual>
+      <sensor name="depth_camera" type="depth_camera">
+        <pose>0 0 0 0 0 0</pose><topic>/demo/camera/depth</topic><update_rate>10</update_rate>
+        <camera><horizontal_fov>1.047</horizontal_fov>
+          <image><width>320</width><height>240</height><format>R_FLOAT32</format></image>
+          <clip><near>0.1</near><far>8.0</far></clip></camera>
+        <always_on>1</always_on><visualize>false</visualize>
+      </sensor>
+    </link>
+    <joint name="cam_depth_j" type="fixed"><parent>base_link</parent><child>cam_depth_link</child></joint>
+
+    <!-- IMU -->
+    <link name="imu_link">
+      <pose>0 0 0.1 0 0 0</pose>
+      <inertial><mass>0.01</mass><inertia><ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz></inertia></inertial>
+      <sensor name="imu_sensor" type="imu">
+        <topic>/demo/imu</topic><update_rate>100</update_rate><always_on>1</always_on>
+        <imu>
+          <angular_velocity>
+            <x><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </link>
+    <joint name="imu_j" type="fixed"><parent>base_link</parent><child>imu_link</child></joint>
+
+    <!-- CAPTEURS ULTRASONIQUES x4 -->
+    <link name="us_front_link"><pose>0.27 0 0.12 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz></inertia></inertial>
+      <visual name="v"><geometry><cylinder><radius>0.022</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.85 0.85 0.05 1</ambient><diffuse>0.85 0.85 0.05 1</diffuse><emissive>0.2 0.2 0 1</emissive></material></visual>
+    </link>
+    <joint name="us_f_j" type="fixed"><parent>base_link</parent><child>us_front_link</child></joint>
+
+    <link name="us_back_link"><pose>-0.27 0 0.12 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz></inertia></inertial>
+      <visual name="v"><geometry><cylinder><radius>0.022</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.85 0.85 0.05 1</ambient><diffuse>0.85 0.85 0.05 1</diffuse><emissive>0.2 0.2 0 1</emissive></material></visual>
+    </link>
+    <joint name="us_b_j" type="fixed"><parent>base_link</parent><child>us_back_link</child></joint>
+
+    <link name="us_left_link"><pose>0 0.22 0.12 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz></inertia></inertial>
+      <visual name="v"><geometry><cylinder><radius>0.022</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.85 0.85 0.05 1</ambient><diffuse>0.85 0.85 0.05 1</diffuse><emissive>0.2 0.2 0 1</emissive></material></visual>
+    </link>
+    <joint name="us_l_j" type="fixed"><parent>base_link</parent><child>us_left_link</child></joint>
+
+    <link name="us_right_link"><pose>0 -0.22 0.12 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz></inertia></inertial>
+      <visual name="v"><geometry><cylinder><radius>0.022</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.85 0.85 0.05 1</ambient><diffuse>0.85 0.85 0.05 1</diffuse><emissive>0.2 0.2 0 1</emissive></material></visual>
+    </link>
+    <joint name="us_r_j" type="fixed"><parent>base_link</parent><child>us_right_link</child></joint>
+
     <plugin filename="ignition-gazebo-pose-publisher-system"
             name="ignition::gazebo::systems::PosePublisher">
       <publish_link_pose>true</publish_link_pose>
       <update_frequency>20</update_frequency>
     </plugin>
   </model>
+
+  <!-- ═══════════ CHAMBRES PATIENTS (x=3.5..19.5, y=-12..-1) ═══════════ -->
+  <model name="ch_p_s"><static>true</static><pose>11.5 -12 1.5 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>16 0.2 3</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>16 0.2 3</size></box></geometry>
+    <material><ambient>0.9 0.88 0.92 1</ambient><diffuse>0.9 0.88 0.92 1</diffuse></material></visual></link></model>
+  <model name="ch_p_sep"><static>true</static><pose>11 -6.5 1.5 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>0.2 11 3</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>0.2 11 3</size></box></geometry>
+    <material><ambient>0.9 0.88 0.92 1</ambient><diffuse>0.9 0.88 0.92 1</diffuse></material></visual></link></model>
+  <model name="ch_n1a"><static>true</static><pose>4.75 -1 1.5 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>2.5 0.2 3</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>2.5 0.2 3</size></box></geometry>
+    <material><ambient>0.9 0.88 0.92 1</ambient><diffuse>0.9 0.88 0.92 1</diffuse></material></visual></link></model>
+  <model name="ch_n1b"><static>true</static><pose>9.4 -1 1.5 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>2.8 0.2 3</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>2.8 0.2 3</size></box></geometry>
+    <material><ambient>0.9 0.88 0.92 1</ambient><diffuse>0.9 0.88 0.92 1</diffuse></material></visual></link></model>
+  <model name="ch_n2a"><static>true</static><pose>13 -1 1.5 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>3.8 0.2 3</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>3.8 0.2 3</size></box></geometry>
+    <material><ambient>0.9 0.88 0.92 1</ambient><diffuse>0.9 0.88 0.92 1</diffuse></material></visual></link></model>
+  <model name="ch_n2b"><static>true</static><pose>17.9 -1 1.5 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>3.2 0.2 3</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>3.2 0.2 3</size></box></geometry>
+    <material><ambient>0.9 0.88 0.92 1</ambient><diffuse>0.9 0.88 0.92 1</diffuse></material></visual></link></model>
+  <model name="sign_ch1"><static>true</static><pose>7 -1.1 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>3.5 0.06 0.45</size></box></geometry><material><ambient>0.05 0.3 0.75 1</ambient><diffuse>0.05 0.3 0.75 1</diffuse><emissive>0.02 0.12 0.3 1</emissive></material></visual></link></model>
+  <model name="sign_ch2"><static>true</static><pose>15.5 -1.1 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>3.5 0.06 0.45</size></box></geometry><material><ambient>0.05 0.3 0.75 1</ambient><diffuse>0.05 0.3 0.75 1</diffuse><emissive>0.02 0.12 0.3 1</emissive></material></visual></link></model>
+
+  <!-- CHAMBRE PATIENT 1 -->
+  <model name="lit_p1"><static>true</static><pose>7 -7 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>2.0 0.9 0.55</size></box></geometry></collision>
+    <visual name="frame"><geometry><box><size>2.0 0.9 0.55</size></box></geometry><material><ambient>0.78 0.8 0.88 1</ambient><diffuse>0.78 0.8 0.88 1</diffuse></material></visual>
+    <visual name="mat"><pose>0 0 0.3 0 0 0</pose><geometry><box><size>1.9 0.82 0.12</size></box></geometry><material><ambient>0.97 0.97 0.97 1</ambient><diffuse>0.97 0.97 0.97 1</diffuse></material></visual>
+    <visual name="oreil"><pose>0.8 0 0.38 0 0 0</pose><geometry><box><size>0.35 0.7 0.08</size></box></geometry><material><ambient>0.98 0.98 0.98 1</ambient><diffuse>0.98 0.98 0.98 1</diffuse></material></visual>
+    <visual name="pat"><pose>-0.1 0 0.4 0 0 0</pose><geometry><box><size>0.28 0.22 0.48</size></box></geometry><material><ambient>0.55 0.4 0.3 1</ambient><diffuse>0.55 0.4 0.3 1</diffuse></material></visual>
+  </link></model>
+  <model name="ecg_p1"><static>true</static><pose>5.5 -5.5 1.1 0 0 0</pose><link name="l">
+    <visual name="c"><geometry><box><size>0.24 0.18 0.3</size></box></geometry><material><ambient>0.1 0.1 0.12 1</ambient><diffuse>0.1 0.1 0.12 1</diffuse></material></visual>
+    <visual name="e"><pose>0 -0.1 0 0.3 0 0</pose><geometry><box><size>0.2 0.02 0.22</size></box></geometry><material><ambient>0 0.8 0.2 1</ambient><diffuse>0 0.8 0.2 1</diffuse><emissive>0 0.35 0.08 1</emissive></material></visual>
+  </link></model>
+  <model name="iv_p1"><static>true</static><pose>5.2 -8.2 1.0 0 0 0</pose><link name="l">
+    <visual name="p"><pose>0 0 -0.7 0 0 0</pose><geometry><cylinder><radius>0.02</radius><length>1.4</length></cylinder></geometry><material><ambient>0.5 0.5 0.5 1</ambient><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+    <visual name="s"><geometry><box><size>0.1 0.06 0.18</size></box></geometry><material><ambient>0.8 0.9 1 0.65</ambient><diffuse>0.8 0.9 1 0.65</diffuse></material></visual>
+  </link></model>
+  <model name="tbl_p1"><static>true</static><pose>8.3 -5.8 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.5 0.4 0.76</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>0.5 0.4 0.76</size></box></geometry><material><ambient>0.8 0.78 0.72 1</ambient><diffuse>0.8 0.78 0.72 1</diffuse></material></visual>
+  </link></model>
+  <model name="chv_p1"><static>true</static><pose>9 -8.5 0.22 0 0 1.57</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.55 0.55 0.44</size></box></geometry></collision>
+    <visual name="s"><geometry><box><size>0.5 0.5 0.08</size></box></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+    <visual name="d"><pose>0.22 0 0.3 0 0 0</pose><geometry><box><size>0.06 0.5 0.55</size></box></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+  </link></model>
+  <model name="btn_p1"><static>true</static><pose>4.1 -9.5 1.2 0 0 0</pose><link name="l">
+    <visual name="box"><geometry><box><size>0.12 0.06 0.08</size></box></geometry><material><ambient>0.9 0.1 0.1 1</ambient><diffuse>0.9 0.1 0.1 1</diffuse><emissive>0.3 0 0 1</emissive></material></visual>
+  </link></model>
+  <model name="o2_p1"><static>true</static><pose>4.1 -5.5 1.15 0 0 0</pose><link name="l">
+    <visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.05</length></cylinder></geometry><material><ambient>0.2 0.4 0.9 1</ambient><diffuse>0.2 0.4 0.9 1</diffuse></material></visual>
+  </link></model>
+
+  <!-- CHAMBRE PATIENT 2 -->
+  <model name="lit_p2"><static>true</static><pose>15 -7 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>2.0 0.9 0.55</size></box></geometry></collision>
+    <visual name="frame"><geometry><box><size>2.0 0.9 0.55</size></box></geometry><material><ambient>0.78 0.8 0.88 1</ambient><diffuse>0.78 0.8 0.88 1</diffuse></material></visual>
+    <visual name="mat"><pose>0 0 0.3 0 0 0</pose><geometry><box><size>1.9 0.82 0.12</size></box></geometry><material><ambient>0.97 0.97 0.97 1</ambient><diffuse>0.97 0.97 0.97 1</diffuse></material></visual>
+    <visual name="oreil"><pose>0.8 0 0.38 0 0 0</pose><geometry><box><size>0.35 0.7 0.08</size></box></geometry><material><ambient>0.98 0.98 0.98 1</ambient><diffuse>0.98 0.98 0.98 1</diffuse></material></visual>
+    <visual name="pat"><pose>-0.1 0 0.4 0 0 0</pose><geometry><box><size>0.28 0.22 0.48</size></box></geometry><material><ambient>0.35 0.5 0.65 1</ambient><diffuse>0.35 0.5 0.65 1</diffuse></material></visual>
+  </link></model>
+  <model name="ecg_p2"><static>true</static><pose>13.5 -5.5 1.1 0 0 0</pose><link name="l">
+    <visual name="c"><geometry><box><size>0.24 0.18 0.3</size></box></geometry><material><ambient>0.1 0.1 0.12 1</ambient><diffuse>0.1 0.1 0.12 1</diffuse></material></visual>
+    <visual name="e"><pose>0 -0.1 0 0.3 0 0</pose><geometry><box><size>0.2 0.02 0.22</size></box></geometry><material><ambient>0 0.8 0.2 1</ambient><diffuse>0 0.8 0.2 1</diffuse><emissive>0 0.35 0.08 1</emissive></material></visual>
+  </link></model>
+  <model name="iv_p2"><static>true</static><pose>13.2 -8.2 1.0 0 0 0</pose><link name="l">
+    <visual name="p"><pose>0 0 -0.7 0 0 0</pose><geometry><cylinder><radius>0.02</radius><length>1.4</length></cylinder></geometry><material><ambient>0.5 0.5 0.5 1</ambient><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+    <visual name="s"><geometry><box><size>0.1 0.06 0.18</size></box></geometry><material><ambient>0.8 0.9 1 0.65</ambient><diffuse>0.8 0.9 1 0.65</diffuse></material></visual>
+  </link></model>
+  <model name="tbl_p2"><static>true</static><pose>16.3 -5.8 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.5 0.4 0.76</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>0.5 0.4 0.76</size></box></geometry><material><ambient>0.8 0.78 0.72 1</ambient><diffuse>0.8 0.78 0.72 1</diffuse></material></visual>
+  </link></model>
+  <model name="chv_p2"><static>true</static><pose>17 -8.5 0.22 0 0 1.57</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.55 0.55 0.44</size></box></geometry></collision>
+    <visual name="s"><geometry><box><size>0.5 0.5 0.08</size></box></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+    <visual name="d"><pose>0.22 0 0.3 0 0 0</pose><geometry><box><size>0.06 0.5 0.55</size></box></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+  </link></model>
+  <model name="btn_p2"><static>true</static><pose>12.1 -9.5 1.2 0 0 0</pose><link name="l">
+    <visual name="box"><geometry><box><size>0.12 0.06 0.08</size></box></geometry><material><ambient>0.9 0.1 0.1 1</ambient><diffuse>0.9 0.1 0.1 1</diffuse><emissive>0.3 0 0 1</emissive></material></visual>
+  </link></model>
+  <model name="o2_p2"><static>true</static><pose>12.1 -5.5 1.15 0 0 0</pose><link name="l">
+    <visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.05</length></cylinder></geometry><material><ambient>0.2 0.4 0.9 1</ambient><diffuse>0.2 0.4 0.9 1</diffuse></material></visual>
+  </link></model>
+
+  <!-- ═══════════ POSTE INFIRMIER (x=3..20, y=-1..2) ═══════════ -->
+  <model name="poste_ws1"><static>true</static><pose>6 1.5 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>1.6 0.7 0.76</size></box></geometry></collision>
+    <visual name="t"><geometry><box><size>1.6 0.7 0.76</size></box></geometry><material><ambient>0.88 0.9 0.95 1</ambient><diffuse>0.88 0.9 0.95 1</diffuse></material></visual>
+    <visual name="top"><pose>0 0 0.4 0 0 0</pose><geometry><box><size>1.62 0.72 0.04</size></box></geometry><material><ambient>0.75 0.8 0.9 1</ambient><diffuse>0.75 0.8 0.9 1</diffuse></material></visual>
+  </link></model>
+  <model name="mon_inf1"><static>true</static><pose>6 1.15 1.12 0 0 0</pose><link name="l">
+    <visual name="c"><geometry><box><size>0.42 0.06 0.3</size></box></geometry><material><ambient>0.08 0.08 0.1 1</ambient><diffuse>0.08 0.08 0.1 1</diffuse></material></visual>
+    <visual name="e"><pose>0 -0.03 0 0.2 0 0</pose><geometry><box><size>0.38 0.02 0.26</size></box></geometry><material><ambient>0.05 0.45 0.85 1</ambient><diffuse>0.05 0.45 0.85 1</diffuse><emissive>0.02 0.18 0.35 1</emissive></material></visual>
+  </link></model>
+  <model name="poste_ws2"><static>true</static><pose>10 1.5 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>1.6 0.7 0.76</size></box></geometry></collision>
+    <visual name="t"><geometry><box><size>1.6 0.7 0.76</size></box></geometry><material><ambient>0.88 0.9 0.95 1</ambient><diffuse>0.88 0.9 0.95 1</diffuse></material></visual>
+    <visual name="top"><pose>0 0 0.4 0 0 0</pose><geometry><box><size>1.62 0.72 0.04</size></box></geometry><material><ambient>0.75 0.8 0.9 1</ambient><diffuse>0.75 0.8 0.9 1</diffuse></material></visual>
+  </link></model>
+  <model name="mon_inf2"><static>true</static><pose>10 1.15 1.12 0 0 0</pose><link name="l">
+    <visual name="c"><geometry><box><size>0.42 0.06 0.3</size></box></geometry><material><ambient>0.08 0.08 0.1 1</ambient><diffuse>0.08 0.08 0.1 1</diffuse></material></visual>
+    <visual name="e"><pose>0 -0.03 0 0.2 0 0</pose><geometry><box><size>0.38 0.02 0.26</size></box></geometry><material><ambient>0.05 0.45 0.85 1</ambient><diffuse>0.05 0.45 0.85 1</diffuse><emissive>0.02 0.18 0.35 1</emissive></material></visual>
+  </link></model>
+  <model name="poste_ws3"><static>true</static><pose>14 1.5 0.38 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>1.6 0.7 0.76</size></box></geometry></collision>
+    <visual name="t"><geometry><box><size>1.6 0.7 0.76</size></box></geometry><material><ambient>0.88 0.9 0.95 1</ambient><diffuse>0.88 0.9 0.95 1</diffuse></material></visual>
+    <visual name="top"><pose>0 0 0.4 0 0 0</pose><geometry><box><size>1.62 0.72 0.04</size></box></geometry><material><ambient>0.75 0.8 0.9 1</ambient><diffuse>0.75 0.8 0.9 1</diffuse></material></visual>
+  </link></model>
+  <model name="mon_inf3"><static>true</static><pose>14 1.15 1.12 0 0 0</pose><link name="l">
+    <visual name="c"><geometry><box><size>0.42 0.06 0.3</size></box></geometry><material><ambient>0.08 0.08 0.1 1</ambient><diffuse>0.08 0.08 0.1 1</diffuse></material></visual>
+    <visual name="e"><pose>0 -0.03 0 0.2 0 0</pose><geometry><box><size>0.38 0.02 0.26</size></box></geometry><material><ambient>0.85 0.45 0.05 1</ambient><diffuse>0.85 0.45 0.05 1</diffuse><emissive>0.35 0.18 0.02 1</emissive></material></visual>
+  </link></model>
+  <model name="inf_post1"><static>true</static><pose>6 0.7 0 0 0 0</pose><link name="l">
+    <visual name="j"><pose>0 0 0.42 0 0 0</pose><geometry><box><size>0.22 0.2 0.55</size></box></geometry><material><ambient>0.15 0.18 0.55 1</ambient><diffuse>0.15 0.18 0.55 1</diffuse></material></visual>
+    <visual name="t"><pose>0 0 0.88 0 0 0</pose><geometry><box><size>0.3 0.2 0.44</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <visual name="h"><pose>0 0 1.26 0 0 0</pose><geometry><sphere><radius>0.12</radius></sphere></geometry><material><ambient>0.8 0.62 0.48 1</ambient><diffuse>0.8 0.62 0.48 1</diffuse></material></visual>
+    <visual name="b"><pose>0 0 1.38 0 0 0</pose><geometry><cylinder><radius>0.09</radius><length>0.05</length></cylinder></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.8 0 0 0</pose><geometry><box><size>0.35 0.25 1.6</size></box></geometry></collision>
+  </link></model>
+  <model name="inf_post2"><static>true</static><pose>10 0.7 0 0 0 0</pose><link name="l">
+    <visual name="j"><pose>0 0 0.42 0 0 0</pose><geometry><box><size>0.22 0.2 0.55</size></box></geometry><material><ambient>0.18 0.15 0.55 1</ambient><diffuse>0.18 0.15 0.55 1</diffuse></material></visual>
+    <visual name="t"><pose>0 0 0.88 0 0 0</pose><geometry><box><size>0.3 0.2 0.44</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <visual name="h"><pose>0 0 1.26 0 0 0</pose><geometry><sphere><radius>0.12</radius></sphere></geometry><material><ambient>0.75 0.58 0.42 1</ambient><diffuse>0.75 0.58 0.42 1</diffuse></material></visual>
+    <visual name="b"><pose>0 0 1.38 0 0 0</pose><geometry><cylinder><radius>0.09</radius><length>0.05</length></cylinder></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.8 0 0 0</pose><geometry><box><size>0.35 0.25 1.6</size></box></geometry></collision>
+  </link></model>
+  <model name="sign_poste"><static>true</static><pose>9 1.95 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>8 0.06 0.45</size></box></geometry><material><ambient>0.08 0.35 0.65 1</ambient><diffuse>0.08 0.35 0.65 1</diffuse><emissive>0.03 0.14 0.26 1</emissive></material></visual></link></model>
+
+  <!-- ═══════════ PANNEAUX DIRECTIONNELS COULOIR ═══════════ -->
+  <model name="dir_ph"><static>true</static><pose>2.5 14 2.2 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.8 0.35</size></box></geometry><material><ambient>0.1 0.3 0.85 1</ambient><diffuse>0.1 0.3 0.85 1</diffuse><emissive>0.04 0.12 0.35 1</emissive></material></visual></link></model>
+  <model name="dir_re"><static>true</static><pose>2.5 5 2.2 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.8 0.35</size></box></geometry><material><ambient>0.85 0.1 0.1 1</ambient><diffuse>0.85 0.1 0.1 1</diffuse><emissive>0.35 0.04 0.04 1</emissive></material></visual></link></model>
+  <model name="dir_urg"><static>true</static><pose>2.5 -5 2.2 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.8 0.35</size></box></geometry><material><ambient>0.9 0.45 0.05 1</ambient><diffuse>0.9 0.45 0.05 1</diffuse><emissive>0.35 0.18 0.02 1</emissive></material></visual></link></model>
+  <model name="dir_csl"><static>true</static><pose>2.5 -25 2.2 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.8 0.35</size></box></geometry><material><ambient>0.1 0.7 0.15 1</ambient><diffuse>0.1 0.7 0.15 1</diffuse><emissive>0.04 0.28 0.06 1</emissive></material></visual></link></model>
+  <model name="dir_acc"><static>true</static><pose>2.5 -25 2.65 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.6 0.28</size></box></geometry><material><ambient>0.7 0.7 0.08 1</ambient><diffuse>0.7 0.7 0.08 1</diffuse><emissive>0.28 0.28 0.03 1</emissive></material></visual></link></model>
+
+  <!-- ═══════════ DISTRIBUTEUR EAU + PLANTES ═══════════ -->
+  <model name="water_disp"><static>true</static><pose>11 -12.5 0.7 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.38 0.35 1.4</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>0.38 0.35 1.4</size></box></geometry><material><ambient>0.9 0.92 0.95 1</ambient><diffuse>0.9 0.92 0.95 1</diffuse></material></visual>
+    <visual name="tank"><pose>0 0 0.4 0 0 0</pose><geometry><cylinder><radius>0.12</radius><length>0.6</length></cylinder></geometry><material><ambient>0.5 0.7 0.9 0.7</ambient><diffuse>0.5 0.7 0.9 0.7</diffuse></material></visual>
+  </link></model>
+  <model name="plante1"><static>true</static><pose>9 -19.5 0 0 0 0</pose><link name="l">
+    <visual name="pot"><geometry><cylinder><radius>0.18</radius><length>0.35</length></cylinder></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+    <visual name="pl1"><pose>0.05 0.05 0.55 0.15 0 0</pose><geometry><sphere><radius>0.22</radius></sphere></geometry><material><ambient>0.1 0.55 0.15 1</ambient><diffuse>0.1 0.55 0.15 1</diffuse></material></visual>
+    <visual name="pl2"><pose>-0.05 0 0.58 -0.1 0.1 0</pose><geometry><sphere><radius>0.18</radius></sphere></geometry><material><ambient>0.12 0.62 0.18 1</ambient><diffuse>0.12 0.62 0.18 1</diffuse></material></visual>
+  </link></model>
+  <model name="plante2"><static>true</static><pose>-5 -19.5 0 0 0 0</pose><link name="l">
+    <visual name="pot"><geometry><cylinder><radius>0.18</radius><length>0.35</length></cylinder></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+    <visual name="pl1"><pose>0.05 0.05 0.55 0.15 0 0</pose><geometry><sphere><radius>0.22</radius></sphere></geometry><material><ambient>0.1 0.55 0.15 1</ambient><diffuse>0.1 0.55 0.15 1</diffuse></material></visual>
+  </link></model>
+  <model name="plante3"><static>true</static><pose>15 -12.5 0 0 0 0</pose><link name="l">
+    <visual name="pot"><geometry><cylinder><radius>0.15</radius><length>0.3</length></cylinder></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+    <visual name="pl1"><pose>0 0 0.5 0.1 0 0</pose><geometry><sphere><radius>0.2</radius></sphere></geometry><material><ambient>0.1 0.55 0.15 1</ambient><diffuse>0.1 0.55 0.15 1</diffuse></material></visual>
+  </link></model>
+  <model name="plante4"><static>true</static><pose>-8 -26 0 0 0 0</pose><link name="l">
+    <visual name="pot"><geometry><cylinder><radius>0.15</radius><length>0.3</length></cylinder></geometry><material><ambient>0.55 0.35 0.18 1</ambient><diffuse>0.55 0.35 0.18 1</diffuse></material></visual>
+    <visual name="pl1"><pose>0 0 0.5 0.1 0.2 0</pose><geometry><sphere><radius>0.2</radius></sphere></geometry><material><ambient>0.1 0.55 0.15 1</ambient><diffuse>0.1 0.55 0.15 1</diffuse></material></visual>
+  </link></model>
+
+  <!-- ═══════════ RAMPE ACCES HANDICAP ═══════════ -->
+  <model name="rampe_hc"><static>true</static><pose>-6 -34 0.18 0 -0.08 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>3 6 0.1</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>3 6 0.1</size></box></geometry><material><ambient>0.65 0.62 0.58 1</ambient><diffuse>0.65 0.62 0.58 1</diffuse></material></visual>
+  </link></model>
+  <model name="rampe_hcg"><static>true</static><pose>-7.4 -33 0.7 0 -0.08 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>6.5</length></cylinder></geometry><material><ambient>0.5 0.5 0.55 1</ambient><diffuse>0.5 0.5 0.55 1</diffuse></material></visual></link></model>
+  <model name="rampe_hcd"><static>true</static><pose>-4.6 -33 0.7 0 -0.08 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>6.5</length></cylinder></geometry><material><ambient>0.5 0.5 0.55 1</ambient><diffuse>0.5 0.5 0.55 1</diffuse></material></visual></link></model>
+  <model name="symb_hc"><static>true</static><pose>-6 -35.5 0.35 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.5 0.5 0.02</size></box></geometry><material><ambient>0.1 0.3 0.85 1</ambient><diffuse>0.1 0.3 0.85 1</diffuse><emissive>0.04 0.12 0.35 1</emissive></material></visual></link></model>
+
+  <!-- ═══════════ RECEPTION: IMPRIMANTE + TELEPHONE ═══════════ -->
+  <model name="printer_acc"><static>true</static><pose>8.5 -21.5 0.98 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.38 0.3 0.12</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>0.38 0.3 0.12</size></box></geometry><material><ambient>0.12 0.12 0.14 1</ambient><diffuse>0.12 0.12 0.14 1</diffuse></material></visual>
+    <visual name="tray"><pose>0 -0.16 -0.02 0 0 0</pose><geometry><box><size>0.32 0.02 0.06</size></box></geometry><material><ambient>0.5 0.5 0.5 1</ambient><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+  </link></model>
+  <model name="phone_acc"><static>true</static><pose>5.2 -21.6 1.02 0 0 0</pose><link name="l">
+    <visual name="v"><geometry><box><size>0.2 0.12 0.04</size></box></geometry><material><ambient>0.15 0.15 0.18 1</ambient><diffuse>0.15 0.15 0.18 1</diffuse></material></visual>
+    <visual name="rec"><pose>0 0 0.06 -0.25 0 0</pose><geometry><cylinder><radius>0.015</radius><length>0.18</length></cylinder></geometry><material><ambient>0.15 0.15 0.18 1</ambient><diffuse>0.15 0.15 0.18 1</diffuse></material></visual>
+  </link></model>
+
+  <!-- ═══════════ REANIMATION: DEFIBRILLATEUR + O2 ═══════════ -->
+  <model name="defib"><static>true</static><pose>9 2.5 0.65 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.4 0.22 0.38</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>0.4 0.22 0.38</size></box></geometry><material><ambient>0.88 0.88 0.08 1</ambient><diffuse>0.88 0.88 0.08 1</diffuse><emissive>0.15 0.15 0 1</emissive></material></visual>
+    <visual name="lcd"><pose>0 -0.12 0.05 0.2 0 0</pose><geometry><box><size>0.28 0.02 0.2</size></box></geometry><material><ambient>0.05 0.2 0.45 1</ambient><diffuse>0.05 0.2 0.45 1</diffuse><emissive>0.02 0.08 0.18 1</emissive></material></visual>
+  </link></model>
+  <model name="o2_r1"><static>true</static><pose>3.2 4 1.15 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.06</length></cylinder></geometry><material><ambient>0.2 0.4 0.9 1</ambient><diffuse>0.2 0.4 0.9 1</diffuse></material></visual></link></model>
+  <model name="o2_r2"><static>true</static><pose>3.2 8 1.15 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.06</length></cylinder></geometry><material><ambient>0.2 0.4 0.9 1</ambient><diffuse>0.2 0.4 0.9 1</diffuse></material></visual></link></model>
+  <model name="o2_r3"><static>true</static><pose>3.2 10.5 1.15 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.06</length></cylinder></geometry><material><ambient>0.2 0.4 0.9 1</ambient><diffuse>0.2 0.4 0.9 1</diffuse></material></visual></link></model>
+
+  <!-- ═══════════ QR CODES PHARMACIE ═══════════ -->
+  <model name="qr1"><static>true</static><pose>-2.5 25.02 0.47 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.01 0.06</size></box></geometry><material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material></visual></link></model>
+  <model name="qr2"><static>true</static><pose>-1.2 25.02 0.47 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.01 0.06</size></box></geometry><material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material></visual></link></model>
+  <model name="qr3"><static>true</static><pose>0.1 25.02 0.47 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.01 0.06</size></box></geometry><material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material></visual></link></model>
+  <model name="qr4"><static>true</static><pose>1.4 25.02 0.47 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.01 0.06</size></box></geometry><material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material></visual></link></model>
+  <model name="qr5"><static>true</static><pose>2.7 25.02 0.47 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.01 0.06</size></box></geometry><material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material></visual></link></model>
+  <model name="qr6"><static>true</static><pose>4.0 25.02 0.47 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.06 0.01 0.06</size></box></geometry><material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material></visual></link></model>
+
 
 </world>
 </sdf>
