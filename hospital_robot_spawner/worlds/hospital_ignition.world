@@ -1,21 +1,23 @@
 <?xml version="1.0"?>
 <!--
-  hospital_ignition.world — Monde Ignition Gazebo (Fortress) pour PharmaBot
-  Compatible Ubuntu 22.04 ARM64 + ROS2 Humble + Ignition Fortress
+  hospital_ignition.world — PharmaBot Gazebo 3D ENRICHI
+  ═══════════════════════════════════════════════════════
+  🟦 Pharmacie     (1.0,  16.0) — départ robot
+  🟥 Réanimation  (11.0,   5.5) — HARD_RT 30s
+  🟧 Urgences     (-5.0,  -6.6) — SOFT_RT 120s
+  🟩 Consultation (-2.0, -27.0) — FIRM_RT 300s
+  🔵 Salle attente (2.0,  10.0) — nouveau
+  🟫 Radiologie   (15.0,  -5.0) — nouveau
+  🩵 Chirurgie    (-3.0, -15.0) — nouveau
 
-  Architecture hôpital :
-    🟦 Pharmacie      (1.0,  16.0) — sol bleu — départ du robot
-    🟥 Réanimation   (11.0,   5.5) — sol rouge — HARD_RT 30s
-    🟧 Urgences      (-5.0,  -6.6) — sol orange — SOFT_RT 120s
-    🟩 Consultation  (-2.0, -27.0) — sol vert — FIRM_RT 300s
-
-  Robot : Pioneer 3AT (corps rouge) inclus directement dans le monde
-  Topics ROS2 : /demo/cmd_vel (commande) · /demo/odom (position)
+  Personnes : 3 infirmières · 2 patients âgés · 1 médecin
+  Obstacles  : 4 chariots médicaux · 2 fauteuils roulants · 3 bancs
+  Médicaments: 18 boîtes + 8 flacons sur étagères
 -->
 <sdf version="1.9">
 <world name="hospital">
 
-  <!-- ══════════════════ PLUGINS SYSTÈME IGNITION ══════════════════ -->
+  <!-- ══ PLUGINS SYSTÈME IGNITION ══════════════════════════════════ -->
   <plugin filename="ignition-gazebo-physics-system"
           name="ignition::gazebo::systems::Physics"/>
   <plugin filename="ignition-gazebo-user-commands-system"
@@ -27,483 +29,344 @@
     <render_engine>ogre2</render_engine>
   </plugin>
 
-  <!-- ══════════════════ PHYSIQUE ══════════════════════════════════ -->
   <physics name="default_physics" default="true" type="ode">
     <max_step_size>0.001</max_step_size>
     <real_time_factor>1.0</real_time_factor>
     <real_time_update_rate>1000</real_time_update_rate>
   </physics>
 
-  <!-- ══════════════════ LUMIÈRE PRINCIPALE ════════════════════════ -->
+  <!-- ══ LUMIÈRES ══════════════════════════════════════════════════ -->
   <light name="sun" type="directional">
-    <pose>0 0 20 0 0 0</pose>
-    <cast_shadows>true</cast_shadows>
-    <diffuse>0.85 0.85 0.85 1</diffuse>
-    <specular>0.2 0.2 0.2 1</specular>
+    <pose>0 0 20 0 0 0</pose><cast_shadows>true</cast_shadows>
+    <diffuse>0.85 0.85 0.85 1</diffuse><specular>0.2 0.2 0.2 1</specular>
     <direction>-0.5 0.1 -0.9</direction>
-    <attenuation>
-      <range>1000</range><constant>0.9</constant>
-      <linear>0.01</linear><quadratic>0.001</quadratic>
-    </attenuation>
+    <attenuation><range>1000</range><constant>0.9</constant><linear>0.01</linear><quadratic>0.001</quadratic></attenuation>
   </light>
+  <light name="lp1" type="point"><pose>1 16 2.8 0 0 0</pose><diffuse>0.5 0.5 1.0 1</diffuse><specular>0.1 0.1 0.3 1</specular><attenuation><range>10</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation><cast_shadows>false</cast_shadows></light>
+  <light name="lp2" type="point"><pose>11 5.5 2.8 0 0 0</pose><diffuse>1.0 0.4 0.4 1</diffuse><specular>0.3 0.1 0.1 1</specular><attenuation><range>10</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation><cast_shadows>false</cast_shadows></light>
+  <light name="lp3" type="point"><pose>-5 -6.6 2.8 0 0 0</pose><diffuse>1.0 0.6 0.2 1</diffuse><specular>0.3 0.2 0.1 1</specular><attenuation><range>10</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation><cast_shadows>false</cast_shadows></light>
+  <light name="lp4" type="point"><pose>-2 -27 2.8 0 0 0</pose><diffuse>0.4 1.0 0.4 1</diffuse><specular>0.1 0.3 0.1 1</specular><attenuation><range>10</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation><cast_shadows>false</cast_shadows></light>
+  <light name="lp5" type="point"><pose>2 10 2.8 0 0 0</pose><diffuse>0.9 0.9 0.6 1</diffuse><specular>0.2 0.2 0.1 1</specular><attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation><cast_shadows>false</cast_shadows></light>
 
-  <!-- Lumières colorées par département -->
-  <light name="light_pharmacy" type="point">
-    <pose>1 16 2.8 0 0 0</pose>
-    <diffuse>0.5 0.5 1.0 1</diffuse>
-    <specular>0.1 0.1 0.3 1</specular>
-    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
-    <cast_shadows>false</cast_shadows>
-  </light>
-  <light name="light_icu" type="point">
-    <pose>11 5.5 2.8 0 0 0</pose>
-    <diffuse>1.0 0.4 0.4 1</diffuse>
-    <specular>0.3 0.1 0.1 1</specular>
-    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
-    <cast_shadows>false</cast_shadows>
-  </light>
-  <light name="light_emergency" type="point">
-    <pose>-5 -6.6 2.8 0 0 0</pose>
-    <diffuse>1.0 0.6 0.2 1</diffuse>
-    <specular>0.3 0.2 0.1 1</specular>
-    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
-    <cast_shadows>false</cast_shadows>
-  </light>
-  <light name="light_consultation" type="point">
-    <pose>-2 -27 2.8 0 0 0</pose>
-    <diffuse>0.4 1.0 0.4 1</diffuse>
-    <specular>0.1 0.3 0.1 1</specular>
-    <attenuation><range>8</range><constant>0.5</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
-    <cast_shadows>false</cast_shadows>
-  </light>
+  <!-- ══ SOL HÔPITAL ═══════════════════════════════════════════════ -->
+  <model name="hospital_floor"><static>true</static><pose>0 -8 -0.05 0 0 0</pose>
+    <link name="l"><collision name="c"><geometry><box><size>50 90 0.1</size></box></geometry></collision>
+    <visual name="v"><geometry><box><size>50 90 0.1</size></box></geometry>
+    <material><ambient>0.82 0.82 0.82 1</ambient><diffuse>0.82 0.82 0.82 1</diffuse></material></visual></link></model>
 
-  <!-- ══════════════════ SOL HÔPITAL ═══════════════════════════════ -->
-  <model name="hospital_floor">
-    <static>true</static>
-    <pose>0 -5 -0.05 0 0 0</pose>
-    <link name="link">
-      <collision name="col">
-        <geometry><box><size>42 70 0.1</size></box></geometry>
-      </collision>
-      <visual name="vis">
-        <geometry><box><size>42 70 0.1</size></box></geometry>
-        <material>
-          <ambient>0.82 0.82 0.82 1</ambient>
-          <diffuse>0.82 0.82 0.82 1</diffuse>
-          <specular>0.1 0.1 0.1 1</specular>
-        </material>
-      </visual>
-    </link>
-  </model>
+  <!-- ══ MURS EXTÉRIEURS ═══════════════════════════════════════════ -->
+  <model name="wall_n"><static>true</static><pose>2 26 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>50 0.3 3</size></box></geometry></collision><visual name="v"><geometry><box><size>50 0.3 3</size></box></geometry><material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
+  <model name="wall_s"><static>true</static><pose>2 -36 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>50 0.3 3</size></box></geometry></collision><visual name="v"><geometry><box><size>50 0.3 3</size></box></geometry><material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
+  <model name="wall_e"><static>true</static><pose>26 -5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.3 62 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.3 62 3</size></box></geometry><material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
+  <model name="wall_w"><static>true</static><pose>-22 -5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.3 62 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.3 62 3</size></box></geometry><material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
 
-  <!-- ══════════════════ MURS EXTÉRIEURS ═══════════════════════════ -->
-  <model name="wall_north"><static>true</static><pose>2 23 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>42 0.3 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>42 0.3 3</size></box></geometry>
-    <material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
-
-  <model name="wall_south"><static>true</static><pose>2 -33 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>42 0.3 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>42 0.3 3</size></box></geometry>
-    <material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
-
-  <model name="wall_east"><static>true</static><pose>22 -5 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.3 56 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.3 56 3</size></box></geometry>
-    <material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
-
-  <model name="wall_west"><static>true</static><pose>-18 -5 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.3 56 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.3 56 3</size></box></geometry>
-    <material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual></link></model>
-
-  <!-- ══════════════════ COULOIR CENTRAL ═══════════════════════════ -->
+  <!-- ══ COULOIRS ══════════════════════════════════════════════════ -->
   <model name="corridor_main"><static>true</static><pose>1 -5 0.02 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>4 54 0.02</size></box></geometry>
+    <link name="l"><visual name="v"><geometry><box><size>4 62 0.02</size></box></geometry>
+    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
+  <model name="corridor_h1"><static>true</static><pose>7 5.5 0.02 0 0 0</pose>
+    <link name="l"><visual name="v"><geometry><box><size>10 4 0.02</size></box></geometry>
+    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
+  <model name="corridor_h2"><static>true</static><pose>-3 -6.6 0.02 0 0 0</pose>
+    <link name="l"><visual name="v"><geometry><box><size>6 4 0.02</size></box></geometry>
+    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
+  <model name="corridor_h3"><static>true</static><pose>-2 -20 0.02 0 0 0</pose>
+    <link name="l"><visual name="v"><geometry><box><size>4 10 0.02</size></box></geometry>
+    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
+  <model name="corridor_rad"><static>true</static><pose>13 -5 0.02 0 0 0</pose>
+    <link name="l"><visual name="v"><geometry><box><size>8 4 0.02</size></box></geometry>
     <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
 
-  <!-- ══════════════════ 🟦 PHARMACIE (1.0, 16.0) ══════════════════ -->
-  <!-- Sol bleu -->
+  <!-- ══════════════ 🟦 PHARMACIE (1.0, 16.0) AMÉLIORÉE ════════════ -->
   <model name="pharmacy_floor"><static>true</static><pose>1 16 0.03 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>12 8 0.02</size></box></geometry>
+    <link name="l"><visual name="v"><geometry><box><size>14 10 0.02</size></box></geometry>
     <material><ambient>0.18 0.38 0.88 1</ambient><diffuse>0.18 0.38 0.88 1</diffuse></material></visual></link></model>
+  <model name="ph_w_n"><static>true</static><pose>1 21 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>14 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>14 0.2 3</size></box></geometry><material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
+  <model name="ph_w_e"><static>true</static><pose>8 16 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 10 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 10 3</size></box></geometry><material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
+  <model name="ph_w_w"><static>true</static><pose>-6 16 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 10 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 10 3</size></box></geometry><material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
+  <model name="ph_w_sl"><static>true</static><pose>-3.5 11 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>5 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>5 0.2 3</size></box></geometry><material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
+  <model name="ph_w_sr"><static>true</static><pose>5.5 11 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>5 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>5 0.2 3</size></box></geometry><material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
 
-  <model name="pharmacy_wall_n"><static>true</static><pose>1 20 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>12 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>12 0.2 3</size></box></geometry>
-    <material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
-  <model name="pharmacy_wall_e"><static>true</static><pose>7 16 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry>
-    <material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
-  <model name="pharmacy_wall_w"><static>true</static><pose>-5 16 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry>
-    <material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
-  <model name="pharmacy_wall_s_l"><static>true</static><pose>-3 12 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>4 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>4 0.2 3</size></box></geometry>
-    <material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
-  <model name="pharmacy_wall_s_r"><static>true</static><pose>5 12 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>4 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>4 0.2 3</size></box></geometry>
-    <material><ambient>0.78 0.84 1.0 1</ambient><diffuse>0.78 0.84 1.0 1</diffuse></material></visual></link></model>
+  <!-- Étagères médicaments (3 étagères) -->
+  <model name="shelf_back1"><static>true</static><pose>0 20.3 1.0 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.35 2</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.35 2</size></box></geometry><material><ambient>0.55 0.38 0.18 1</ambient><diffuse>0.55 0.38 0.18 1</diffuse></material></visual></link></model>
+  <model name="shelf_back2"><static>true</static><pose>-4.5 16 1.0 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.35 8 2</size></box></geometry></collision><visual name="v"><geometry><box><size>0.35 8 2</size></box></geometry><material><ambient>0.55 0.38 0.18 1</ambient><diffuse>0.55 0.38 0.18 1</diffuse></material></visual></link></model>
+  <!-- Planches -->
+  <model name="sp1"><static>true</static><pose>0 20.05 0.4 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>9.5 0.25 0.04</size></box></geometry><material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
+  <model name="sp2"><static>true</static><pose>0 20.05 1.0 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>9.5 0.25 0.04</size></box></geometry><material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
+  <model name="sp3"><static>true</static><pose>0 20.05 1.6 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>9.5 0.25 0.04</size></box></geometry><material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
+  <!-- Étagère latérale planches -->
+  <model name="sp4"><static>true</static><pose>-4.3 16 0.4 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.25 7.5 0.04</size></box></geometry><material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
+  <model name="sp5"><static>true</static><pose>-4.3 16 1.1 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.25 7.5 0.04</size></box></geometry><material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
 
-  <!-- Étagère médicaments -->
-  <model name="shelf_back"><static>true</static><pose>0 19.3 1.0 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>8 0.4 2</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>8 0.4 2</size></box></geometry>
-    <material><ambient>0.55 0.38 0.18 1</ambient><diffuse>0.55 0.38 0.18 1</diffuse></material></visual></link></model>
-  <model name="shelf_plank1"><static>true</static><pose>0 19.0 0.5 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>7.5 0.3 0.05</size></box></geometry>
-    <material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
-  <model name="shelf_plank2"><static>true</static><pose>0 19.0 1.1 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>7.5 0.3 0.05</size></box></geometry>
-    <material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
-  <model name="shelf_plank3"><static>true</static><pose>0 19.0 1.7 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>7.5 0.3 0.05</size></box></geometry>
-    <material><ambient>0.8 0.6 0.3 1</ambient><diffuse>0.8 0.6 0.3 1</diffuse></material></visual></link></model>
+  <!-- 18 boîtes médicaments sur étagère nord -->
+  <model name="m01"><static>true</static><pose>-4 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>1 0.1 0.1 1</ambient><diffuse>1 0.1 0.1 1</diffuse></material></visual></link></model>
+  <model name="m02"><static>true</static><pose>-3 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>0.1 0.8 0.1 1</ambient><diffuse>0.1 0.8 0.1 1</diffuse></material></visual></link></model>
+  <model name="m03"><static>true</static><pose>-2 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>0.1 0.1 1 1</ambient><diffuse>0.1 0.1 1 1</diffuse></material></visual></link></model>
+  <model name="m04"><static>true</static><pose>-1 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>1 0.8 0 1</ambient><diffuse>1 0.8 0 1</diffuse></material></visual></link></model>
+  <model name="m05"><static>true</static><pose>0 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>0.8 0.1 0.8 1</ambient><diffuse>0.8 0.1 0.8 1</diffuse></material></visual></link></model>
+  <model name="m06"><static>true</static><pose>1 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>0 0.9 0.9 1</ambient><diffuse>0 0.9 0.9 1</diffuse></material></visual></link></model>
+  <model name="m07"><static>true</static><pose>2 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>1 0.4 0.1 1</ambient><diffuse>1 0.4 0.1 1</diffuse></material></visual></link></model>
+  <model name="m08"><static>true</static><pose>3 20.05 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 0.12 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 0.12 0.18</size></box></geometry><material><ambient>0.4 0.8 0.4 1</ambient><diffuse>0.4 0.8 0.4 1</diffuse></material></visual></link></model>
+  <!-- Rangée 2 -->
+  <model name="m09"><static>true</static><pose>-3.5 20.05 1.12 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.18 0.12 0.16</size></box></geometry></collision><visual name="v"><geometry><box><size>0.18 0.12 0.16</size></box></geometry><material><ambient>1 0.2 0.5 1</ambient><diffuse>1 0.2 0.5 1</diffuse></material></visual></link></model>
+  <model name="m10"><static>true</static><pose>-2.5 20.05 1.12 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.18 0.12 0.16</size></box></geometry></collision><visual name="v"><geometry><box><size>0.18 0.12 0.16</size></box></geometry><material><ambient>0.2 0.5 1 1</ambient><diffuse>0.2 0.5 1 1</diffuse></material></visual></link></model>
+  <model name="m11"><static>true</static><pose>-1.5 20.05 1.12 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.18 0.12 0.16</size></box></geometry></collision><visual name="v"><geometry><box><size>0.18 0.12 0.16</size></box></geometry><material><ambient>0.5 1 0.2 1</ambient><diffuse>0.5 1 0.2 1</diffuse></material></visual></link></model>
+  <!-- Flacons (cylindres) rangée 3 -->
+  <model name="f01"><static>true</static><pose>-3 20.05 1.72 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.18</length></cylinder></geometry><material><ambient>0.9 0.9 0.2 1</ambient><diffuse>0.9 0.9 0.2 1</diffuse></material></visual></link></model>
+  <model name="f02"><static>true</static><pose>-2 20.05 1.72 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.18</length></cylinder></geometry><material><ambient>0.2 0.9 0.9 1</ambient><diffuse>0.2 0.9 0.9 1</diffuse></material></visual></link></model>
+  <model name="f03"><static>true</static><pose>-1 20.05 1.72 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.18</length></cylinder></geometry><material><ambient>0.9 0.2 0.9 1</ambient><diffuse>0.9 0.2 0.9 1</diffuse></material></visual></link></model>
+  <model name="f04"><static>true</static><pose>0 20.05 1.72 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.22</length></cylinder></geometry><material><ambient>0.3 0.7 1 1</ambient><diffuse>0.3 0.7 1 1</diffuse></material></visual></link></model>
+  <model name="f05"><static>true</static><pose>1 20.05 1.72 0 0 0</pose><link name="l"><visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.18</length></cylinder></geometry><material><ambient>1 0.5 0.1 1</ambient><diffuse>1 0.5 0.1 1</diffuse></material></visual></link></model>
+  <!-- Boîtes étagère latérale -->
+  <model name="m12"><static>true</static><pose>-4.3 18 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.12 0.2 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.12 0.2 0.18</size></box></geometry><material><ambient>1 0.1 0.3 1</ambient><diffuse>1 0.1 0.3 1</diffuse></material></visual></link></model>
+  <model name="m13"><static>true</static><pose>-4.3 17 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.12 0.2 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.12 0.2 0.18</size></box></geometry><material><ambient>0.1 1 0.3 1</ambient><diffuse>0.1 1 0.3 1</diffuse></material></visual></link></model>
+  <model name="m14"><static>true</static><pose>-4.3 16 0.52 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.12 0.2 0.18</size></box></geometry></collision><visual name="v"><geometry><box><size>0.12 0.2 0.18</size></box></geometry><material><ambient>0.2 0.2 1 1</ambient><diffuse>0.2 0.2 1 1</diffuse></material></visual></link></model>
 
-  <!-- Boîtes médicaments sur l'étagère -->
-  <model name="med1"><static>true</static><pose>-3 18.9 0.6 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.22 0.14 0.18</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.22 0.14 0.18</size></box></geometry>
-    <material><ambient>1 0.15 0.15 1</ambient><diffuse>1 0.15 0.15 1</diffuse></material></visual></link></model>
-  <model name="med2"><static>true</static><pose>-2 18.9 0.6 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.22 0.14 0.18</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.22 0.14 0.18</size></box></geometry>
-    <material><ambient>0.15 0.85 0.2 1</ambient><diffuse>0.15 0.85 0.2 1</diffuse></material></visual></link></model>
-  <model name="med3"><static>true</static><pose>-1 18.9 0.6 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.22 0.14 0.18</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.22 0.14 0.18</size></box></geometry>
-    <material><ambient>0.15 0.15 1 1</ambient><diffuse>0.15 0.15 1 1</diffuse></material></visual></link></model>
-  <model name="med4"><static>true</static><pose>0 18.9 0.6 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.22 0.14 0.18</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.22 0.14 0.18</size></box></geometry>
-    <material><ambient>1 0.8 0 1</ambient><diffuse>1 0.8 0 1</diffuse></material></visual></link></model>
-  <model name="med5"><static>true</static><pose>1 18.9 0.6 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.22 0.14 0.18</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.22 0.14 0.18</size></box></geometry>
-    <material><ambient>0.85 0.15 0.85 1</ambient><diffuse>0.85 0.15 0.85 1</diffuse></material></visual></link></model>
-  <model name="med6"><static>true</static><pose>2 18.9 0.6 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.22 0.14 0.18</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.22 0.14 0.18</size></box></geometry>
-    <material><ambient>0 0.9 0.9 1</ambient><diffuse>0 0.9 0.9 1</diffuse></material></visual></link></model>
+  <!-- Comptoir dispensation pharmacie -->
+  <model name="ph_counter"><static>true</static><pose>1 12.5 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>5 0.8 0.9</size></box></geometry></collision><visual name="v"><geometry><box><size>5 0.8 0.9</size></box></geometry><material><ambient>0.9 0.9 1.0 1</ambient><diffuse>0.9 0.9 1.0 1</diffuse></material></visual></link></model>
+  <!-- Ordinateur sur comptoir -->
+  <model name="ph_computer"><static>true</static><pose>2.5 12.6 1.02 0 0 0</pose><link name="l">
+    <visual name="screen"><geometry><box><size>0.35 0.02 0.28</size></box></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+    <visual name="base"><pose>0 0 -0.16 0 0 0</pose><geometry><box><size>0.25 0.15 0.04</size></box></geometry><material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material></visual>
+    <visual name="glow"><geometry><box><size>0.32 0.01 0.25</size></box></geometry><material><ambient>0.1 0.4 0.9 1</ambient><diffuse>0.1 0.4 0.9 1</diffuse><emissive>0.05 0.2 0.5 1</emissive></material></visual>
+  </link></model>
+  <!-- Réfrigérateur médicaments -->
+  <model name="ph_fridge"><static>true</static><pose>6.5 19 0.9 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.7 0.6 1.8</size></box></geometry></collision><visual name="v"><geometry><box><size>0.7 0.6 1.8</size></box></geometry><material><ambient>0.9 0.95 1 1</ambient><diffuse>0.9 0.95 1 1</diffuse></material></visual><visual name="door"><pose>0.36 0 0 0 0 0</pose><geometry><box><size>0.02 0.58 1.78</size></box></geometry><material><ambient>0.7 0.85 1 0.5</ambient><diffuse>0.7 0.85 1 0.5</diffuse></material></visual></link></model>
+  <!-- Panneau Pharmacie -->
+  <model name="sign_ph"><static>true</static><pose>1 20.85 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>4.5 0.05 0.55</size></box></geometry><material><ambient>0.05 0.05 0.9 1</ambient><diffuse>0.05 0.05 0.9 1</diffuse><emissive>0 0 0.3 1</emissive></material></visual></link></model>
 
-  <!-- Table préparation pharmacie -->
-  <model name="prep_table"><static>true</static><pose>1 14.5 0.4 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>3 1 0.8</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>3 1 0.8</size></box></geometry>
-    <material><ambient>0.88 0.9 1.0 1</ambient><diffuse>0.88 0.9 1.0 1</diffuse></material></visual></link></model>
+  <!-- ══════════════ 🟥 RÉANIMATION (11.0, 5.5) ════════════════════ -->
+  <model name="icu_floor"><static>true</static><pose>11 5.5 0.03 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry><material><ambient>0.88 0.12 0.12 1</ambient><diffuse>0.88 0.12 0.12 1</diffuse></material></visual></link></model>
+  <model name="icu_wn"><static>true</static><pose>11 9.5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>1 0.8 0.8 1</ambient><diffuse>1 0.8 0.8 1</diffuse></material></visual></link></model>
+  <model name="icu_we"><static>true</static><pose>16 5.5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>1 0.8 0.8 1</ambient><diffuse>1 0.8 0.8 1</diffuse></material></visual></link></model>
+  <model name="icu_ws"><static>true</static><pose>11 1.5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>1 0.8 0.8 1</ambient><diffuse>1 0.8 0.8 1</diffuse></material></visual></link></model>
+  <model name="icu_wwt"><static>true</static><pose>6 8 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 3 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 3 3</size></box></geometry><material><ambient>1 0.8 0.8 1</ambient><diffuse>1 0.8 0.8 1</diffuse></material></visual></link></model>
+  <model name="icu_wwb"><static>true</static><pose>6 3 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 3 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 3 3</size></box></geometry><material><ambient>1 0.8 0.8 1</ambient><diffuse>1 0.8 0.8 1</diffuse></material></visual></link></model>
+  <!-- Lits + équipements -->
+  <model name="icu_bed1"><static>true</static><pose>14 8 0.35 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2.0 0.9 0.5</size></box></geometry></collision><visual name="v"><geometry><box><size>2.0 0.9 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
+  <model name="icu_bed2"><static>true</static><pose>14 6.0 0.35 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2.0 0.9 0.5</size></box></geometry></collision><visual name="v"><geometry><box><size>2.0 0.9 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
+  <model name="icu_bed3"><static>true</static><pose>14 4.0 0.35 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2.0 0.9 0.5</size></box></geometry></collision><visual name="v"><geometry><box><size>2.0 0.9 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
+  <model name="icu_monitor1"><static>true</static><pose>12.5 8 1.2 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.25 0.15 0.3</size></box></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual><visual name="screen"><pose>0 -0.08 0 0.3 0 0</pose><geometry><box><size>0.22 0.02 0.18</size></box></geometry><material><ambient>0 0.8 0.2 1</ambient><diffuse>0 0.8 0.2 1</diffuse><emissive>0 0.4 0.1 1</emissive></material></visual></link></model>
+  <model name="delivery_icu"><static>true</static><pose>11 5.5 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision><visual name="v"><geometry><box><size>0.8 0.8 0.9</size></box></geometry><material><ambient>0.9 0.5 0.05 1</ambient><diffuse>0.9 0.5 0.05 1</diffuse></material></visual></link></model>
+  <model name="sign_icu"><static>true</static><pose>11 9.2 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>4.5 0.05 0.55</size></box></geometry><material><ambient>0.85 0.05 0.05 1</ambient><diffuse>0.85 0.05 0.05 1</diffuse><emissive>0.4 0 0 1</emissive></material></visual></link></model>
 
-  <!-- ══════════════════ 🟥 RÉANIMATION (11.0, 5.5) ════════════════ -->
-  <model name="icu_floor"><static>true</static><pose>11 5.5 0.03 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry>
-    <material><ambient>0.88 0.15 0.15 1</ambient><diffuse>0.88 0.15 0.15 1</diffuse></material></visual></link></model>
+  <!-- ══════════════ 🟧 URGENCES (-5.0, -6.6) ══════════════════════ -->
+  <model name="emg_floor"><static>true</static><pose>-5 -6.6 0.03 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry><material><ambient>0.95 0.48 0.08 1</ambient><diffuse>0.95 0.48 0.08 1</diffuse></material></visual></link></model>
+  <model name="emg_wn"><static>true</static><pose>-5 -2.6 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>1 0.85 0.7 1</ambient><diffuse>1 0.85 0.7 1</diffuse></material></visual></link></model>
+  <model name="emg_ws"><static>true</static><pose>-5 -10.6 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>1 0.85 0.7 1</ambient><diffuse>1 0.85 0.7 1</diffuse></material></visual></link></model>
+  <model name="emg_ww"><static>true</static><pose>-10 -6.6 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>1 0.85 0.7 1</ambient><diffuse>1 0.85 0.7 1</diffuse></material></visual></link></model>
+  <model name="emg_wet"><static>true</static><pose>0 -4.1 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 4.5 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 4.5 3</size></box></geometry><material><ambient>1 0.85 0.7 1</ambient><diffuse>1 0.85 0.7 1</diffuse></material></visual></link></model>
+  <model name="emg_web"><static>true</static><pose>0 -9.1 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 4.5 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 4.5 3</size></box></geometry><material><ambient>1 0.85 0.7 1</ambient><diffuse>1 0.85 0.7 1</diffuse></material></visual></link></model>
+  <model name="emg_bed1"><static>true</static><pose>-8 -4 0.35 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2 0.9 0.5</size></box></geometry></collision><visual name="v"><geometry><box><size>2 0.9 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
+  <model name="emg_bed2"><static>true</static><pose>-8 -9 0.35 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2 0.9 0.5</size></box></geometry></collision><visual name="v"><geometry><box><size>2 0.9 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
+  <model name="delivery_emg"><static>true</static><pose>-5 -6.6 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision><visual name="v"><geometry><box><size>0.8 0.8 0.9</size></box></geometry><material><ambient>0.9 0.5 0.05 1</ambient><diffuse>0.9 0.5 0.05 1</diffuse></material></visual></link></model>
+  <model name="sign_emg"><static>true</static><pose>-5 -2.8 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>3.5 0.05 0.55</size></box></geometry><material><ambient>0.95 0.35 0 1</ambient><diffuse>0.95 0.35 0 1</diffuse><emissive>0.4 0.1 0 1</emissive></material></visual></link></model>
 
-  <model name="icu_wall_n"><static>true</static><pose>11 9.5 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry>
-    <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material></visual></link></model>
-  <model name="icu_wall_e"><static>true</static><pose>16 5.5 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry>
-    <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material></visual></link></model>
-  <model name="icu_wall_s"><static>true</static><pose>11 1.5 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry>
-    <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material></visual></link></model>
-  <model name="icu_wall_w_top"><static>true</static><pose>6 8 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 3 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 3 3</size></box></geometry>
-    <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material></visual></link></model>
-  <model name="icu_wall_w_bot"><static>true</static><pose>6 3 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 3 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 3 3</size></box></geometry>
-    <material><ambient>1.0 0.8 0.8 1</ambient><diffuse>1.0 0.8 0.8 1</diffuse></material></visual></link></model>
-  <model name="corridor_icu"><static>true</static><pose>4.5 5.5 0.025 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>3 4 0.02</size></box></geometry>
-    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
-  <!-- Lits ICU -->
-  <model name="icu_bed1"><static>true</static><pose>13 7.5 0.35 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>2 0.9 0.6</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>2 0.9 0.6</size></box></geometry>
-    <material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
-  <model name="icu_bed2"><static>true</static><pose>13 5.5 0.35 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>2 0.9 0.6</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>2 0.9 0.6</size></box></geometry>
-    <material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
-  <!-- Table livraison ICU (orange) -->
-  <model name="delivery_icu"><static>true</static><pose>11 5.5 0.45 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.8 0.8 0.9</size></box></geometry>
-    <material><ambient>0.92 0.5 0.05 1</ambient><diffuse>0.92 0.5 0.05 1</diffuse></material></visual></link></model>
+  <!-- ══════════════ 🟩 CONSULTATION (-2.0, -27.0) ══════════════════ -->
+  <model name="csl_floor"><static>true</static><pose>-2 -27 0.03 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry><material><ambient>0.18 0.78 0.28 1</ambient><diffuse>0.18 0.78 0.28 1</diffuse></material></visual></link></model>
+  <model name="csl_wn_l"><static>true</static><pose>-5.5 -23 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>3 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>3 0.2 3</size></box></geometry><material><ambient>0.68 1 0.68 1</ambient><diffuse>0.68 1 0.68 1</diffuse></material></visual></link></model>
+  <model name="csl_wn_r"><static>true</static><pose>0.5 -23 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>5 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>5 0.2 3</size></box></geometry><material><ambient>0.68 1 0.68 1</ambient><diffuse>0.68 1 0.68 1</diffuse></material></visual></link></model>
+  <model name="csl_ws"><static>true</static><pose>-2 -31 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>0.68 1 0.68 1</ambient><diffuse>0.68 1 0.68 1</diffuse></material></visual></link></model>
+  <model name="csl_we"><static>true</static><pose>3 -27 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>0.68 1 0.68 1</ambient><diffuse>0.68 1 0.68 1</diffuse></material></visual></link></model>
+  <model name="csl_ww"><static>true</static><pose>-7 -27 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>0.68 1 0.68 1</ambient><diffuse>0.68 1 0.68 1</diffuse></material></visual></link></model>
+  <model name="csl_desk"><static>true</static><pose>0 -29.5 0.38 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2 1 0.75</size></box></geometry></collision><visual name="v"><geometry><box><size>2 1 0.75</size></box></geometry><material><ambient>0.5 0.35 0.15 1</ambient><diffuse>0.5 0.35 0.15 1</diffuse></material></visual></link></model>
+  <model name="csl_chair1"><static>true</static><pose>-3 -26 0.22 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.5 0.5 0.44</size></box></geometry><material><ambient>0.4 0.7 0.4 1</ambient><diffuse>0.4 0.7 0.4 1</diffuse></material></visual></link></model>
+  <model name="csl_chair2"><static>true</static><pose>-4 -26 0.22 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.5 0.5 0.44</size></box></geometry><material><ambient>0.4 0.7 0.4 1</ambient><diffuse>0.4 0.7 0.4 1</diffuse></material></visual></link></model>
+  <model name="delivery_csl"><static>true</static><pose>-2 -27 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision><visual name="v"><geometry><box><size>0.8 0.8 0.9</size></box></geometry><material><ambient>0.9 0.5 0.05 1</ambient><diffuse>0.9 0.5 0.05 1</diffuse></material></visual></link></model>
+  <model name="sign_csl"><static>true</static><pose>-2 -23.2 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>4 0.05 0.55</size></box></geometry><material><ambient>0.05 0.7 0.15 1</ambient><diffuse>0.05 0.7 0.15 1</diffuse><emissive>0 0.3 0.05 1</emissive></material></visual></link></model>
 
-  <!-- ══════════════════ 🟧 URGENCES (-5.0, -6.6) ══════════════════ -->
-  <model name="emg_floor"><static>true</static><pose>-5 -6.6 0.03 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry>
-    <material><ambient>0.95 0.48 0.08 1</ambient><diffuse>0.95 0.48 0.08 1</diffuse></material></visual></link></model>
+  <!-- ══════════════ 🔵 SALLE D'ATTENTE (2.0, 10.0) NOUVEAU ══════════ -->
+  <model name="wait_floor"><static>true</static><pose>2 10 0.03 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>8 6 0.02</size></box></geometry><material><ambient>0.88 0.82 0.65 1</ambient><diffuse>0.88 0.82 0.65 1</diffuse></material></visual></link></model>
+  <model name="wait_wn_l"><static>true</static><pose>-1.5 13 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>3 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>3 0.2 3</size></box></geometry><material><ambient>0.95 0.9 0.78 1</ambient><diffuse>0.95 0.9 0.78 1</diffuse></material></visual></link></model>
+  <model name="wait_wn_r"><static>true</static><pose>5 13 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>4 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>4 0.2 3</size></box></geometry><material><ambient>0.95 0.9 0.78 1</ambient><diffuse>0.95 0.9 0.78 1</diffuse></material></visual></link></model>
+  <model name="wait_ws"><static>true</static><pose>2 7 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>8 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>8 0.2 3</size></box></geometry><material><ambient>0.95 0.9 0.78 1</ambient><diffuse>0.95 0.9 0.78 1</diffuse></material></visual></link></model>
+  <model name="wait_we"><static>true</static><pose>6 10 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 6 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 6 3</size></box></geometry><material><ambient>0.95 0.9 0.78 1</ambient><diffuse>0.95 0.9 0.78 1</diffuse></material></visual></link></model>
+  <!-- Bancs salle d'attente -->
+  <model name="bench1"><static>true</static><pose>4 11 0.25 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2.5 0.5 0.45</size></box></geometry></collision><visual name="v"><geometry><box><size>2.5 0.5 0.45</size></box></geometry><material><ambient>0.5 0.35 0.1 1</ambient><diffuse>0.5 0.35 0.1 1</diffuse></material></visual></link></model>
+  <model name="bench2"><static>true</static><pose>4 9 0.25 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2.5 0.5 0.45</size></box></geometry></collision><visual name="v"><geometry><box><size>2.5 0.5 0.45</size></box></geometry><material><ambient>0.5 0.35 0.1 1</ambient><diffuse>0.5 0.35 0.1 1</diffuse></material></visual></link></model>
+  <!-- Présentoir magazines -->
+  <model name="magazine_rack"><static>true</static><pose>-1 10 0.6 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>0.3 1.2 0.9</size></box></geometry><material><ambient>0.7 0.5 0.3 1</ambient><diffuse>0.7 0.5 0.3 1</diffuse></material></visual></link></model>
+  <model name="sign_wait"><static>true</static><pose>2 12.8 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>3.5 0.05 0.5</size></box></geometry><material><ambient>0.7 0.6 0.2 1</ambient><diffuse>0.7 0.6 0.2 1</diffuse></material></visual></link></model>
 
-  <model name="emg_wall_n"><static>true</static><pose>-5 -2.6 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry>
-    <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material></visual></link></model>
-  <model name="emg_wall_s"><static>true</static><pose>-5 -10.6 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry>
-    <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material></visual></link></model>
-  <model name="emg_wall_w"><static>true</static><pose>-10 -6.6 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry>
-    <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material></visual></link></model>
-  <model name="emg_wall_e_top"><static>true</static><pose>0 -4.1 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 4.5 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 4.5 3</size></box></geometry>
-    <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material></visual></link></model>
-  <model name="emg_wall_e_bot"><static>true</static><pose>0 -9.1 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 4.5 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 4.5 3</size></box></geometry>
-    <material><ambient>1.0 0.85 0.7 1</ambient><diffuse>1.0 0.85 0.7 1</diffuse></material></visual></link></model>
-  <model name="corridor_emg"><static>true</static><pose>-2.5 -6.6 0.025 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>3 4 0.02</size></box></geometry>
-    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
-  <!-- Civière urgences -->
-  <model name="emg_gurney"><static>true</static><pose>-8 -5 0.35 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>1.8 0.7 0.6</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>1.8 0.7 0.6</size></box></geometry>
-    <material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
-  <!-- Table livraison Urgences -->
-  <model name="delivery_emg"><static>true</static><pose>-5 -6.6 0.45 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.8 0.8 0.9</size></box></geometry>
-    <material><ambient>0.92 0.5 0.05 1</ambient><diffuse>0.92 0.5 0.05 1</diffuse></material></visual></link></model>
+  <!-- ══════════════ 🟫 RADIOLOGIE (15.0, -5.0) NOUVEAU ══════════════ -->
+  <model name="rad_floor"><static>true</static><pose>17 -5 0.03 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry><material><ambient>0.25 0.25 0.35 1</ambient><diffuse>0.25 0.25 0.35 1</diffuse></material></visual></link></model>
+  <model name="rad_wn"><static>true</static><pose>17 -1 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual></link></model>
+  <model name="rad_ws"><static>true</static><pose>17 -9 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual></link></model>
+  <model name="rad_we"><static>true</static><pose>22 -5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual></link></model>
+  <model name="rad_ww_t"><static>true</static><pose>12 -2.5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 4 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 4 3</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual></link></model>
+  <model name="rad_ww_b"><static>true</static><pose>12 -7.5 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 3 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 3 3</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual></link></model>
+  <!-- Machine Rayons X -->
+  <model name="xray_machine"><static>true</static><pose>20 -5 0.6 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>1.5 1 1.2</size></box></geometry></collision><visual name="v"><geometry><box><size>1.5 1 1.2</size></box></geometry><material><ambient>0.3 0.3 0.35 1</ambient><diffuse>0.3 0.3 0.35 1</diffuse></material></visual><visual name="arm"><pose>0 0 0.7 0 0 0</pose><geometry><box><size>0.2 1.5 0.15</size></box></geometry><material><ambient>0.2 0.2 0.25 1</ambient><diffuse>0.2 0.2 0.25 1</diffuse></material></visual></link></model>
+  <model name="sign_rad"><static>true</static><pose>17 -1.2 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>3.5 0.05 0.5</size></box></geometry><material><ambient>0.3 0.3 0.7 1</ambient><diffuse>0.3 0.3 0.7 1</diffuse></material></visual></link></model>
 
-  <!-- ══════════════════ 🟩 CONSULTATION (-2.0, -27.0) ═════════════ -->
-  <model name="csl_floor"><static>true</static><pose>-2 -27 0.03 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry>
-    <material><ambient>0.18 0.78 0.28 1</ambient><diffuse>0.18 0.78 0.28 1</diffuse></material></visual></link></model>
+  <!-- ══════════════ 🩵 CHIRURGIE (-3.0, -15.0) NOUVEAU ══════════════ -->
+  <model name="surg_floor"><static>true</static><pose>-3 -15 0.03 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>10 8 0.02</size></box></geometry><material><ambient>0.55 0.88 0.78 1</ambient><diffuse>0.55 0.88 0.78 1</diffuse></material></visual></link></model>
+  <model name="surg_wn_l"><static>true</static><pose>-5 -11 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>4 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>4 0.2 3</size></box></geometry><material><ambient>0.75 0.95 0.88 1</ambient><diffuse>0.75 0.95 0.88 1</diffuse></material></visual></link></model>
+  <model name="surg_wn_r"><static>true</static><pose>0 -11 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>4 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>4 0.2 3</size></box></geometry><material><ambient>0.75 0.95 0.88 1</ambient><diffuse>0.75 0.95 0.88 1</diffuse></material></visual></link></model>
+  <model name="surg_ws"><static>true</static><pose>-3 -19 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision><visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry><material><ambient>0.75 0.95 0.88 1</ambient><diffuse>0.75 0.95 0.88 1</diffuse></material></visual></link></model>
+  <model name="surg_we"><static>true</static><pose>2 -15 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>0.75 0.95 0.88 1</ambient><diffuse>0.75 0.95 0.88 1</diffuse></material></visual></link></model>
+  <model name="surg_ww"><static>true</static><pose>-8 -15 1.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision><visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry><material><ambient>0.75 0.95 0.88 1</ambient><diffuse>0.75 0.95 0.88 1</diffuse></material></visual></link></model>
+  <!-- Table opératoire -->
+  <model name="op_table"><static>true</static><pose>-3 -15 0.5 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>2.0 0.8 0.8</size></box></geometry></collision><visual name="v"><geometry><box><size>2.0 0.8 0.8</size></box></geometry><material><ambient>0.9 0.95 0.9 1</ambient><diffuse>0.9 0.95 0.9 1</diffuse></material></visual></link></model>
+  <!-- Lampe chirurgie -->
+  <model name="surg_lamp"><static>true</static><pose>-3 -15 2.8 0 0 0</pose><link name="l"><visual name="circle"><geometry><cylinder><radius>0.4</radius><length>0.1</length></cylinder></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual></link></model>
+  <model name="sign_surg"><static>true</static><pose>-3 -11.2 2.5 0 0 0</pose><link name="l"><visual name="v"><geometry><box><size>3.5 0.05 0.5</size></box></geometry><material><ambient>0.1 0.6 0.5 1</ambient><diffuse>0.1 0.6 0.5 1</diffuse></material></visual></link></model>
 
-  <model name="csl_wall_n_l"><static>true</static><pose>-5.5 -23 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>3 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>3 0.2 3</size></box></geometry>
-    <material><ambient>0.68 1.0 0.68 1</ambient><diffuse>0.68 1.0 0.68 1</diffuse></material></visual></link></model>
-  <model name="csl_wall_n_r"><static>true</static><pose>0.5 -23 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>5 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>5 0.2 3</size></box></geometry>
-    <material><ambient>0.68 1.0 0.68 1</ambient><diffuse>0.68 1.0 0.68 1</diffuse></material></visual></link></model>
-  <model name="csl_wall_s"><static>true</static><pose>-2 -31 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>10 0.2 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>10 0.2 3</size></box></geometry>
-    <material><ambient>0.68 1.0 0.68 1</ambient><diffuse>0.68 1.0 0.68 1</diffuse></material></visual></link></model>
-  <model name="csl_wall_e"><static>true</static><pose>3 -27 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry>
-    <material><ambient>0.68 1.0 0.68 1</ambient><diffuse>0.68 1.0 0.68 1</diffuse></material></visual></link></model>
-  <model name="csl_wall_w"><static>true</static><pose>-7 -27 1.5 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.2 8 3</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.2 8 3</size></box></geometry>
-    <material><ambient>0.68 1.0 0.68 1</ambient><diffuse>0.68 1.0 0.68 1</diffuse></material></visual></link></model>
-  <model name="corridor_csl"><static>true</static><pose>-2 -20.5 0.025 0 0 0</pose>
-    <link name="l"><visual name="v"><geometry><box><size>4 6 0.02</size></box></geometry>
-    <material><ambient>0.72 0.72 0.78 1</ambient><diffuse>0.72 0.72 0.78 1</diffuse></material></visual></link></model>
-  <!-- Bureau consultation -->
-  <model name="csl_desk"><static>true</static><pose>0 -29 0.38 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>2 1 0.75</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>2 1 0.75</size></box></geometry>
-    <material><ambient>0.5 0.35 0.15 1</ambient><diffuse>0.5 0.35 0.15 1</diffuse></material></visual></link></model>
-  <!-- Table livraison Consultation -->
-  <model name="delivery_csl"><static>true</static><pose>-2 -27 0.45 0 0 0</pose>
-    <link name="l"><collision name="c"><geometry><box><size>0.8 0.8 0.9</size></box></geometry></collision>
-    <visual name="v"><geometry><box><size>0.8 0.8 0.9</size></box></geometry>
-    <material><ambient>0.92 0.5 0.05 1</ambient><diffuse>0.92 0.5 0.05 1</diffuse></material></visual></link></model>
+  <!-- ══ OBSTACLES DANS LES COULOIRS ══════════════════════════════ -->
+  <!-- Chariot médical 1 (couloir principal, près pharmacie) -->
+  <model name="cart1"><static>true</static><pose>3.2 12 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.6 0.4 0.9</size></box></geometry></collision><visual name="body"><geometry><box><size>0.6 0.4 0.85</size></box></geometry><material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual><visual name="top"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.55 0.38 0.05</size></box></geometry><material><ambient>0.7 0.8 0.7 1</ambient><diffuse>0.7 0.8 0.7 1</diffuse></material></visual></link></model>
 
-  <!-- ══════════════════ 🤖 ROBOT PIONEER 3AT ══════════════════════
-    Inclus directement dans le monde — spawn automatique au démarrage
-    Position initiale : Pharmacie (1.0, 16.0) + hauteur roues (0.22m)
-  ════════════════════════════════════════════════════════════════ -->
+  <!-- Chariot médical 2 (couloir ICU) -->
+  <model name="cart2"><static>true</static><pose>8 8 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.6 0.4 0.9</size></box></geometry></collision><visual name="body"><geometry><box><size>0.6 0.4 0.85</size></box></geometry><material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual><visual name="top"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.55 0.38 0.05</size></box></geometry><material><ambient>0.7 0.7 0.85 1</ambient><diffuse>0.7 0.7 0.85 1</diffuse></material></visual></link></model>
+
+  <!-- Chariot médical 3 (couloir sud) -->
+  <model name="cart3"><static>true</static><pose>-1 -3 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.6 0.4 0.9</size></box></geometry></collision><visual name="body"><geometry><box><size>0.6 0.4 0.85</size></box></geometry><material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual><visual name="top"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.55 0.38 0.05</size></box></geometry><material><ambient>0.85 0.75 0.65 1</ambient><diffuse>0.85 0.75 0.65 1</diffuse></material></visual></link></model>
+
+  <!-- Chariot médical 4 (couloir consultation) -->
+  <model name="cart4"><static>true</static><pose>3 -18 0.45 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>0.6 0.4 0.9</size></box></geometry></collision><visual name="body"><geometry><box><size>0.6 0.4 0.85</size></box></geometry><material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual><visual name="top"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.55 0.38 0.05</size></box></geometry><material><ambient>0.7 0.85 0.7 1</ambient><diffuse>0.7 0.85 0.7 1</diffuse></material></visual></link></model>
+
+  <!-- Fauteuil roulant 1 (couloir principal) -->
+  <model name="wheelchair1"><static>true</static><pose>-1.5 7 0.3 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.65 0.55 0.9</size></box></geometry></collision>
+    <visual name="seat"><geometry><box><size>0.5 0.45 0.4</size></box></geometry><material><ambient>0.3 0.3 0.8 1</ambient><diffuse>0.3 0.3 0.8 1</diffuse></material></visual>
+    <visual name="back"><pose>-0.2 0 0.4 0 0 0</pose><geometry><box><size>0.08 0.45 0.55</size></box></geometry><material><ambient>0.25 0.25 0.7 1</ambient><diffuse>0.25 0.25 0.7 1</diffuse></material></visual>
+    <visual name="wheel_l"><pose>0 0.3 -0.15 0 1.5707 0</pose><geometry><cylinder><radius>0.28</radius><length>0.06</length></cylinder></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+    <visual name="wheel_r"><pose>0 -0.3 -0.15 0 1.5707 0</pose><geometry><cylinder><radius>0.28</radius><length>0.06</length></cylinder></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+  </link></model>
+
+  <!-- Fauteuil roulant 2 (salle d'attente) -->
+  <model name="wheelchair2"><static>true</static><pose>0.5 10 0.3 0 0 0</pose><link name="l">
+    <collision name="c"><geometry><box><size>0.65 0.55 0.9</size></box></geometry></collision>
+    <visual name="seat"><geometry><box><size>0.5 0.45 0.4</size></box></geometry><material><ambient>0.3 0.3 0.8 1</ambient><diffuse>0.3 0.3 0.8 1</diffuse></material></visual>
+    <visual name="back"><pose>-0.2 0 0.4 0 0 0</pose><geometry><box><size>0.08 0.45 0.55</size></box></geometry><material><ambient>0.25 0.25 0.7 1</ambient><diffuse>0.25 0.25 0.7 1</diffuse></material></visual>
+    <visual name="wheel_l"><pose>0 0.3 -0.15 0 1.5707 0</pose><geometry><cylinder><radius>0.28</radius><length>0.06</length></cylinder></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+    <visual name="wheel_r"><pose>0 -0.3 -0.15 0 1.5707 0</pose><geometry><cylinder><radius>0.28</radius><length>0.06</length></cylinder></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+  </link></model>
+
+  <!-- ══ 👨‍⚕️ PERSONNES DANS L'HÔPITAL ════════════════════════════════
+    Chaque personne = tête (sphère) + torse (boîte) + jambes (cylindres)
+    Les acteurs sont des obstacles que le robot doit éviter
+  ═══════════════════════════════════════════════════════════════════ -->
+
+  <!-- Infirmière 1 — Blouse blanche — couloir principal (3, 12) -->
+  <model name="nurse_1"><static>true</static><pose>3 12 0 0 0 -1.57</pose><link name="l">
+    <visual name="legs"><pose>0 0 0.5 0 0 0</pose><geometry><box><size>0.25 0.22 0.65</size></box></geometry><material><ambient>0.25 0.25 0.7 1</ambient><diffuse>0.25 0.25 0.7 1</diffuse></material></visual>
+    <visual name="torso"><pose>0 0 1.05 0 0 0</pose><geometry><box><size>0.32 0.2 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <visual name="head"><pose>0 0 1.45 0 0 0</pose><geometry><sphere><radius>0.13</radius></sphere></geometry><material><ambient>0.82 0.65 0.5 1</ambient><diffuse>0.82 0.65 0.5 1</diffuse></material></visual>
+    <visual name="cap"><pose>0 0 1.6 0 0 0</pose><geometry><cylinder><radius>0.09</radius><length>0.06</length></cylinder></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.85 0 0 0</pose><geometry><box><size>0.35 0.25 1.7</size></box></geometry></collision>
+  </link></model>
+
+  <!-- Infirmière 2 — Près de l'ICU (9, 7) -->
+  <model name="nurse_2"><static>true</static><pose>9 7 0 0 0 1.0</pose><link name="l">
+    <visual name="legs"><pose>0 0 0.5 0 0 0</pose><geometry><box><size>0.25 0.22 0.65</size></box></geometry><material><ambient>0.25 0.25 0.7 1</ambient><diffuse>0.25 0.25 0.7 1</diffuse></material></visual>
+    <visual name="torso"><pose>0 0 1.05 0 0 0</pose><geometry><box><size>0.32 0.2 0.5</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <visual name="head"><pose>0 0 1.45 0 0 0</pose><geometry><sphere><radius>0.13</radius></sphere></geometry><material><ambient>0.75 0.55 0.4 1</ambient><diffuse>0.75 0.55 0.4 1</diffuse></material></visual>
+    <visual name="cap"><pose>0 0 1.6 0 0 0</pose><geometry><cylinder><radius>0.09</radius><length>0.06</length></cylinder></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.85 0 0 0</pose><geometry><box><size>0.35 0.25 1.7</size></box></geometry></collision>
+  </link></model>
+
+  <!-- Médecin — Blouse blanche + stéthoscope — pharmacie (3, 16) -->
+  <model name="doctor_1"><static>true</static><pose>3 16 0 0 0 -0.5</pose><link name="l">
+    <visual name="legs"><pose>0 0 0.5 0 0 0</pose><geometry><box><size>0.25 0.22 0.65</size></box></geometry><material><ambient>0.15 0.15 0.4 1</ambient><diffuse>0.15 0.15 0.4 1</diffuse></material></visual>
+    <visual name="torso"><pose>0 0 1.05 0 0 0</pose><geometry><box><size>0.35 0.22 0.52</size></box></geometry><material><ambient>0.95 0.95 0.95 1</ambient><diffuse>0.95 0.95 0.95 1</diffuse></material></visual>
+    <visual name="steth"><pose>0 0.12 0.95 0.3 0 0</pose><geometry><cylinder><radius>0.025</radius><length>0.35</length></cylinder></geometry><material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+    <visual name="head"><pose>0 0 1.45 0 0 0</pose><geometry><sphere><radius>0.14</radius></sphere></geometry><material><ambient>0.7 0.55 0.4 1</ambient><diffuse>0.7 0.55 0.4 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.85 0 0 0</pose><geometry><box><size>0.38 0.26 1.7</size></box></geometry></collision>
+  </link></model>
+
+  <!-- Patient âgé 1 — Avec canne — salle d'attente (4, 10.5) -->
+  <model name="elderly_1"><static>true</static><pose>4.5 10.5 0 0 0 2.5</pose><link name="l">
+    <visual name="legs"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.22 0.2 0.55</size></box></geometry><material><ambient>0.4 0.35 0.55 1</ambient><diffuse>0.4 0.35 0.55 1</diffuse></material></visual>
+    <visual name="torso"><pose>0 0 0.94 0.1 0 0</pose><geometry><box><size>0.3 0.19 0.44</size></box></geometry><material><ambient>0.6 0.5 0.38 1</ambient><diffuse>0.6 0.5 0.38 1</diffuse></material></visual>
+    <visual name="head"><pose>0 0.04 1.28 0.15 0 0</pose><geometry><sphere><radius>0.12</radius></sphere></geometry><material><ambient>0.78 0.65 0.52 1</ambient><diffuse>0.78 0.65 0.52 1</diffuse></material></visual>
+    <!-- Cheveux blancs -->
+    <visual name="hair"><pose>0 0.04 1.38 0.15 0 0</pose><geometry><sphere><radius>0.1</radius></sphere></geometry><material><ambient>0.9 0.9 0.9 1</ambient><diffuse>0.9 0.9 0.9 1</diffuse></material></visual>
+    <!-- Canne -->
+    <visual name="cane"><pose>0.2 0.15 0.6 0.1 0.1 0</pose><geometry><cylinder><radius>0.018</radius><length>0.95</length></cylinder></geometry><material><ambient>0.4 0.3 0.15 1</ambient><diffuse>0.4 0.3 0.15 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.75 0 0 0</pose><geometry><box><size>0.35 0.28 1.5</size></box></geometry></collision>
+  </link></model>
+
+  <!-- Patient âgé 2 — Avec canne — couloir vers consultation (1.5, -14) -->
+  <model name="elderly_2"><static>true</static><pose>1.5 -14 0 0 0 1.8</pose><link name="l">
+    <visual name="legs"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.22 0.2 0.55</size></box></geometry><material><ambient>0.35 0.3 0.45 1</ambient><diffuse>0.35 0.3 0.45 1</diffuse></material></visual>
+    <visual name="torso"><pose>0 0 0.94 0.08 0 0</pose><geometry><box><size>0.3 0.19 0.44</size></box></geometry><material><ambient>0.55 0.6 0.45 1</ambient><diffuse>0.55 0.6 0.45 1</diffuse></material></visual>
+    <visual name="head"><pose>0 0.03 1.27 0.1 0 0</pose><geometry><sphere><radius>0.12</radius></sphere></geometry><material><ambient>0.78 0.65 0.52 1</ambient><diffuse>0.78 0.65 0.52 1</diffuse></material></visual>
+    <visual name="hair"><pose>0 0.03 1.37 0.1 0 0</pose><geometry><sphere><radius>0.1</radius></sphere></geometry><material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material></visual>
+    <visual name="cane"><pose>0.18 0.12 0.6 0.1 0.08 0</pose><geometry><cylinder><radius>0.018</radius><length>0.92</length></cylinder></geometry><material><ambient>0.35 0.25 0.12 1</ambient><diffuse>0.35 0.25 0.12 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.75 0 0 0</pose><geometry><box><size>0.35 0.28 1.5</size></box></geometry></collision>
+  </link></model>
+
+  <!-- Patient debout — couloir urgences (-2, -4) -->
+  <model name="patient_1"><static>true</static><pose>-2 -4 0 0 0 0.3</pose><link name="l">
+    <visual name="legs"><pose>0 0 0.5 0 0 0</pose><geometry><box><size>0.25 0.22 0.65</size></box></geometry><material><ambient>0.2 0.35 0.55 1</ambient><diffuse>0.2 0.35 0.55 1</diffuse></material></visual>
+    <visual name="torso"><pose>0 0 1.03 0 0 0</pose><geometry><box><size>0.32 0.2 0.48</size></box></geometry><material><ambient>0.85 0.5 0.5 1</ambient><diffuse>0.85 0.5 0.5 1</diffuse></material></visual>
+    <visual name="head"><pose>0 0 1.42 0 0 0</pose><geometry><sphere><radius>0.13</radius></sphere></geometry><material><ambient>0.78 0.62 0.48 1</ambient><diffuse>0.78 0.62 0.48 1</diffuse></material></visual>
+    <collision name="c"><pose>0 0 0.85 0 0 0</pose><geometry><box><size>0.35 0.25 1.7</size></box></geometry></collision>
+  </link></model>
+
+  <!-- ══ 🤖 ROBOT PIONEER 3AT ════════════════════════════════════════
+    Position initiale : Pharmacie (1.0, 16.0)
+  ══════════════════════════════════════════════════════════════════ -->
   <model name="PharmaBot">
-    <pose>1.0 16.0 0.22 0 0 0</pose>
+    <pose>1.0 13.5 0.22 0 0 0</pose>
 
-    <!-- ── Châssis principal (rouge PharmaBot) ── -->
     <link name="base_link">
       <pose>0 0 0.08 0 0 0</pose>
-      <inertial>
-        <mass>14.0</mass>
-        <inertia>
-          <ixx>0.35</ixx><ixy>0</ixy><ixz>0</ixz>
-          <iyy>0.50</iyy><iyz>0</iyz><izz>0.72</izz>
-        </inertia>
+      <inertial><mass>14.0</mass>
+        <inertia><ixx>0.35</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.50</iyy><iyz>0</iyz><izz>0.72</izz></inertia>
       </inertial>
-      <collision name="base_col">
-        <geometry><box><size>0.50 0.38 0.18</size></box></geometry>
-      </collision>
-      <visual name="base_vis">
-        <geometry><box><size>0.50 0.38 0.18</size></box></geometry>
-        <material>
-          <ambient>0.85 0.08 0.08 1</ambient>
-          <diffuse>0.85 0.08 0.08 1</diffuse>
-          <specular>0.3 0.1 0.1 1</specular>
-        </material>
-      </visual>
-      <!-- Dessus du robot -->
-      <visual name="top_vis">
-        <pose>0 0 0.11 0 0 0</pose>
-        <geometry><box><size>0.40 0.30 0.04</size></box></geometry>
-        <material><ambient>0.18 0.18 0.18 1</ambient><diffuse>0.18 0.18 0.18 1</diffuse></material>
-      </visual>
-      <!-- LED bleue -->
-      <visual name="led_vis">
-        <pose>0.15 0 0.14 0 0 0</pose>
-        <geometry><sphere><radius>0.025</radius></sphere></geometry>
-        <material>
-          <ambient>0 0.5 1 1</ambient><diffuse>0 0.5 1 1</diffuse>
-          <emissive>0 0.3 1 1</emissive>
-        </material>
-      </visual>
-      <!-- Antenne -->
-      <visual name="antenna_vis">
-        <pose>-0.15 0.1 0.24 0 0 0</pose>
-        <geometry><cylinder><radius>0.008</radius><length>0.28</length></cylinder></geometry>
-        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
-      </visual>
-      <!-- Baie cargo -->
-      <visual name="cargo_vis">
-        <pose>0 0 0.15 0 0 0</pose>
-        <geometry><box><size>0.28 0.22 0.07</size></box></geometry>
-        <material><ambient>0.65 0.65 0.88 1</ambient><diffuse>0.65 0.65 0.88 1</diffuse></material>
-      </visual>
-      <!-- LiDAR -->
-      <visual name="lidar_vis">
-        <pose>0 0 0.20 0 0 0</pose>
-        <geometry><cylinder><radius>0.04</radius><length>0.05</length></cylinder></geometry>
-        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
-      </visual>
-
-      <!-- ── Capteur LiDAR 360° ── -->
+      <collision name="base_col"><geometry><box><size>0.50 0.38 0.18</size></box></geometry></collision>
+      <visual name="base_vis"><geometry><box><size>0.50 0.38 0.18</size></box></geometry>
+        <material><ambient>0.85 0.08 0.08 1</ambient><diffuse>0.85 0.08 0.08 1</diffuse><specular>0.3 0.1 0.1 1</specular></material></visual>
+      <visual name="top"><pose>0 0 0.11 0 0 0</pose><geometry><box><size>0.40 0.30 0.04</size></box></geometry>
+        <material><ambient>0.18 0.18 0.18 1</ambient><diffuse>0.18 0.18 0.18 1</diffuse></material></visual>
+      <visual name="led"><pose>0.15 0 0.14 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry>
+        <material><ambient>0 0.5 1 1</ambient><diffuse>0 0.5 1 1</diffuse><emissive>0 0.3 1 1</emissive></material></visual>
+      <visual name="antenna"><pose>-0.15 0.1 0.24 0 0 0</pose><geometry><cylinder><radius>0.008</radius><length>0.28</length></cylinder></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+      <visual name="cargo"><pose>0 0 0.15 0 0 0</pose><geometry><box><size>0.28 0.22 0.07</size></box></geometry>
+        <material><ambient>0.65 0.65 0.88 1</ambient><diffuse>0.65 0.65 0.88 1</diffuse></material></visual>
+      <visual name="lidar_body"><pose>0 0 0.20 0 0 0</pose><geometry><cylinder><radius>0.04</radius><length>0.05</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material></visual>
       <sensor name="lidar" type="gpu_lidar">
-        <pose>0 0 0.22 0 0 0</pose>
-        <topic>/demo/scan</topic>
-        <update_rate>10</update_rate>
-        <lidar>
-          <scan>
-            <horizontal>
-              <samples>360</samples><resolution>1</resolution>
-              <min_angle>-3.14159</min_angle><max_angle>3.14159</max_angle>
-            </horizontal>
-          </scan>
-          <range><min>0.12</min><max>8.0</max><resolution>0.01</resolution></range>
-        </lidar>
+        <pose>0 0 0.22 0 0 0</pose><topic>/demo/scan</topic><update_rate>10</update_rate>
+        <lidar><scan><horizontal><samples>360</samples><resolution>1</resolution><min_angle>-3.14159</min_angle><max_angle>3.14159</max_angle></horizontal></scan>
+        <range><min>0.12</min><max>10.0</max><resolution>0.01</resolution></range></lidar>
         <always_on>1</always_on><visualize>true</visualize>
       </sensor>
     </link>
 
-    <!-- ── Roue avant gauche ── -->
-    <link name="front_left_wheel">
-      <pose>0.19 0.22 0 0 1.5707 0</pose>
-      <inertial><mass>1.5</mass>
-        <inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz>
-                 <iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia>
-      </inertial>
-      <collision name="col">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface>
-      </collision>
-      <visual name="vis">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
-      </visual>
-      <visual name="rim">
-        <geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry>
-        <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
-      </visual>
+    <link name="front_left_wheel"><pose>0.19 0.22 0 0 1.5707 0</pose>
+      <inertial><mass>1.5</mass><inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia></inertial>
+      <collision name="col"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+      <visual name="vis"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material></visual>
+      <visual name="rim"><geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry><material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material></visual>
+    </link>
+    <link name="front_right_wheel"><pose>0.19 -0.22 0 0 1.5707 0</pose>
+      <inertial><mass>1.5</mass><inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia></inertial>
+      <collision name="col"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+      <visual name="vis"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material></visual>
+      <visual name="rim"><geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry><material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material></visual>
+    </link>
+    <link name="back_left_wheel"><pose>-0.19 0.22 0 0 1.5707 0</pose>
+      <inertial><mass>1.5</mass><inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia></inertial>
+      <collision name="col"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+      <visual name="vis"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material></visual>
+      <visual name="rim"><geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry><material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material></visual>
+    </link>
+    <link name="back_right_wheel"><pose>-0.19 -0.22 0 0 1.5707 0</pose>
+      <inertial><mass>1.5</mass><inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia></inertial>
+      <collision name="col"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+      <visual name="vis"><geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry><material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material></visual>
+      <visual name="rim"><geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry><material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material></visual>
     </link>
 
-    <!-- ── Roue avant droite ── -->
-    <link name="front_right_wheel">
-      <pose>0.19 -0.22 0 0 1.5707 0</pose>
-      <inertial><mass>1.5</mass>
-        <inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz>
-                 <iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia>
-      </inertial>
-      <collision name="col">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface>
-      </collision>
-      <visual name="vis">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
-      </visual>
-      <visual name="rim">
-        <geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry>
-        <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
-      </visual>
-    </link>
+    <joint name="front_left_wheel_joint" type="revolute"><parent>base_link</parent><child>front_left_wheel</child><axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis></joint>
+    <joint name="front_right_wheel_joint" type="revolute"><parent>base_link</parent><child>front_right_wheel</child><axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis></joint>
+    <joint name="back_left_wheel_joint" type="revolute"><parent>base_link</parent><child>back_left_wheel</child><axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis></joint>
+    <joint name="back_right_wheel_joint" type="revolute"><parent>base_link</parent><child>back_right_wheel</child><axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis></joint>
 
-    <!-- ── Roue arrière gauche ── -->
-    <link name="back_left_wheel">
-      <pose>-0.19 0.22 0 0 1.5707 0</pose>
-      <inertial><mass>1.5</mass>
-        <inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz>
-                 <iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia>
-      </inertial>
-      <collision name="col">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface>
-      </collision>
-      <visual name="vis">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
-      </visual>
-      <visual name="rim">
-        <geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry>
-        <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
-      </visual>
-    </link>
-
-    <!-- ── Roue arrière droite ── -->
-    <link name="back_right_wheel">
-      <pose>-0.19 -0.22 0 0 1.5707 0</pose>
-      <inertial><mass>1.5</mass>
-        <inertia><ixx>0.005</ixx><ixy>0</ixy><ixz>0</ixz>
-                 <iyy>0.005</iyy><iyz>0</iyz><izz>0.009</izz></inertia>
-      </inertial>
-      <collision name="col">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface>
-      </collision>
-      <visual name="vis">
-        <geometry><cylinder><radius>0.11</radius><length>0.08</length></cylinder></geometry>
-        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
-      </visual>
-      <visual name="rim">
-        <geometry><cylinder><radius>0.07</radius><length>0.082</length></cylinder></geometry>
-        <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
-      </visual>
-    </link>
-
-    <!-- ── Joints roues ── -->
-    <joint name="front_left_wheel_joint" type="revolute">
-      <parent>base_link</parent><child>front_left_wheel</child>
-      <axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis>
-    </joint>
-    <joint name="front_right_wheel_joint" type="revolute">
-      <parent>base_link</parent><child>front_right_wheel</child>
-      <axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis>
-    </joint>
-    <joint name="back_left_wheel_joint" type="revolute">
-      <parent>base_link</parent><child>back_left_wheel</child>
-      <axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis>
-    </joint>
-    <joint name="back_right_wheel_joint" type="revolute">
-      <parent>base_link</parent><child>back_right_wheel</child>
-      <axis><xyz>0 0 1</xyz><dynamics><damping>0.05</damping></dynamics></axis>
-    </joint>
-
-    <!-- ── Plugin Diff Drive Ignition Gazebo ──
-      Commande : /demo/cmd_vel (geometry_msgs/Twist)
-      Odomètre : /demo/odom   (nav_msgs/Odometry)
-      Bridgé vers ROS2 via ros_gz_bridge
-    ── -->
     <plugin filename="ignition-gazebo-diff-drive-system"
             name="ignition::gazebo::systems::DiffDrive">
       <left_joint>front_left_wheel_joint</left_joint>
@@ -513,7 +376,7 @@
       <wheel_separation>0.44</wheel_separation>
       <wheel_radius>0.11</wheel_radius>
       <max_linear_velocity>1.5</max_linear_velocity>
-      <max_angular_velocity>2.0</max_angular_velocity>
+      <max_angular_velocity>2.5</max_angular_velocity>
       <max_linear_acceleration>2.0</max_linear_acceleration>
       <max_angular_acceleration>3.0</max_angular_acceleration>
       <topic>/demo/cmd_vel</topic>
@@ -523,17 +386,12 @@
       <child_frame_id>base_link</child_frame_id>
       <odom_publish_frequency>20</odom_publish_frequency>
     </plugin>
-
-    <!-- Position publisher pour Gazebo bridge -->
     <plugin filename="ignition-gazebo-pose-publisher-system"
             name="ignition::gazebo::systems::PosePublisher">
       <publish_link_pose>true</publish_link_pose>
-      <publish_nested_model_pose>true</publish_nested_model_pose>
       <update_frequency>20</update_frequency>
     </plugin>
-
   </model>
-  <!-- ══════════ FIN ROBOT ════════════════════════════════════════ -->
 
 </world>
 </sdf>
