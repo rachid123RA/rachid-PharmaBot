@@ -42,6 +42,17 @@ if ! grep -q "22.04" /etc/os-release 2>/dev/null; then
 fi
 
 # ════════════════════════════════════════════════════════════════════
+# NETTOYAGE PRÉVENTIF — Supprimer toute entrée OSRF conflictuelle
+# (doit être fait AVANT le premier apt-get update)
+# ════════════════════════════════════════════════════════════════════
+log "Nettoyage des dépôts OSRF conflictuels..."
+sudo rm -f /etc/apt/sources.list.d/gazebo-stable.list \
+           /etc/apt/sources.list.d/gazebo*.list
+sudo rm -f /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+           /usr/share/keyrings/gazebo-archive-keyring.gpg
+ok "Dépôts OSRF nettoyés"
+
+# ════════════════════════════════════════════════════════════════════
 # ÉTAPE 1 — Mise à jour système
 # ════════════════════════════════════════════════════════════════════
 log "ÉTAPE 1 — Mise à jour système"
