@@ -123,9 +123,9 @@ if ! command -v gazebo &>/dev/null; then
                /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
                /usr/share/keyrings/gazebo-archive-keyring.gpg
 
-    # Ajouter le dépôt officiel OSRF (Gazebo) avec clé unifiée
-    sudo wget -q https://packages.osrfoundation.org/gazebo.key \
-        -O /usr/share/keyrings/gazebo-archive-keyring.gpg
+    # Ajouter le dépôt officiel OSRF (Gazebo) — clé en format binaire (dearmor requis)
+    wget -qO- https://packages.osrfoundation.org/gazebo.key \
+        | sudo gpg --dearmor -o /usr/share/keyrings/gazebo-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gazebo-archive-keyring.gpg] \
 http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
         | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
