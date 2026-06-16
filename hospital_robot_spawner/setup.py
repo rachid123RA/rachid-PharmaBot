@@ -18,6 +18,8 @@ setup(
          glob('config/*.yaml')),
         (os.path.join('share', package_name, 'worlds/'),
          glob('./worlds/*')),
+                (os.path.join('share', package_name, 'maps/'),
+         glob('./maps/*.yaml') + glob('./maps/*.pgm')),
         (os.path.join('share', package_name, 'models/mobile_warehouse_robot/'),
          glob('./models/mobile_warehouse_robot/*')),
         (os.path.join('share', package_name, 'models/pioneer3at/'),
@@ -70,6 +72,8 @@ setup(
             'dashboard_p4    = hospital_robot_spawner.visual_dashboard_p4:main',
             # ── Gazebo 3D Bridge — médicaments physiques ──
             'gazebo_bridge   = hospital_robot_spawner.pharmabot_gazebo_bridge:main',
+            # ── Nav2 Navigator (navigation VM sans Docker) ──
+            'nav2_navigator  = hospital_robot_spawner.nav2_navigator:main',
         ],
     },
 )

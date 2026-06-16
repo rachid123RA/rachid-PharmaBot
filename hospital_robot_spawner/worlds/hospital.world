@@ -763,5 +763,52 @@
     <update_rate>20.0</update_rate>
   </plugin>
 
+
+  <!-- ══════════════════════════════════════════════════════
+       ACTEURS — PERSONNES EN MOUVEMENT
+  ══════════════════════════════════════════════════════════ -->
+  <actor name="infirmiere_1">
+    <pose>0.5 10.0 1.0 0 0 0</pose>
+    <skin><filename>walk.dae</filename><scale>1.0</scale></skin>
+    <animation name="walking"><filename>walk.dae</filename><scale>1.0</scale><interpolate_x>true</interpolate_x></animation>
+    <script><loop>true</loop><delay_start>0.0</delay_start><auto_start>true</auto_start>
+      <trajectory id="0" type="walking">
+        <waypoint><time>0</time><pose>0.5 10.0 1.0 0 0 -1.5708</pose></waypoint>
+        <waypoint><time>5</time><pose>0.5  5.0 1.0 0 0 -1.5708</pose></waypoint>
+        <waypoint><time>6</time><pose>0.5  5.0 1.0 0 0  1.5708</pose></waypoint>
+        <waypoint><time>11</time><pose>0.5 10.0 1.0 0 0  1.5708</pose></waypoint>
+        <waypoint><time>12</time><pose>0.5 10.0 1.0 0 0 -1.5708</pose></waypoint>
+      </trajectory>
+    </script>
+  </actor>
+  <actor name="infirmiere_2">
+    <pose>-0.5 -3.0 1.0 0 0 0</pose>
+    <skin><filename>walk.dae</filename><scale>1.0</scale></skin>
+    <animation name="walking"><filename>walk.dae</filename><scale>1.0</scale><interpolate_x>true</interpolate_x></animation>
+    <script><loop>true</loop><delay_start>2.0</delay_start><auto_start>true</auto_start>
+      <trajectory id="0" type="walking">
+        <waypoint><time>0</time><pose>-0.5 -3.0 1.0 0 0 -1.5708</pose></waypoint>
+        <waypoint><time>6</time><pose>-0.5 -8.0 1.0 0 0 -1.5708</pose></waypoint>
+        <waypoint><time>7</time><pose>-0.5 -8.0 1.0 0 0  1.5708</pose></waypoint>
+        <waypoint><time>13</time><pose>-0.5 -3.0 1.0 0 0  1.5708</pose></waypoint>
+        <waypoint><time>14</time><pose>-0.5 -3.0 1.0 0 0 -1.5708</pose></waypoint>
+      </trajectory>
+    </script>
+  </actor>
+  <actor name="visiteur_1">
+    <pose>0.3 -15.0 1.0 0 0 0</pose>
+    <skin><filename>walk.dae</filename><scale>1.0</scale></skin>
+    <animation name="walking"><filename>walk.dae</filename><scale>1.0</scale><interpolate_x>true</interpolate_x></animation>
+    <script><loop>true</loop><delay_start>4.0</delay_start><auto_start>true</auto_start>
+      <trajectory id="0" type="walking">
+        <waypoint><time>0</time><pose>0.3 -15.0 1.0 0 0 -1.5708</pose></waypoint>
+        <waypoint><time>7</time><pose>0.3 -22.0 1.0 0 0 -1.5708</pose></waypoint>
+        <waypoint><time>8</time><pose>0.3 -22.0 1.0 0 0  1.5708</pose></waypoint>
+        <waypoint><time>15</time><pose>0.3 -15.0 1.0 0 0  1.5708</pose></waypoint>
+        <waypoint><time>16</time><pose>0.3 -15.0 1.0 0 0 -1.5708</pose></waypoint>
+      </trajectory>
+    </script>
+  </actor>
+
 </world>
 </sdf>
