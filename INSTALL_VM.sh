@@ -106,10 +106,16 @@ if ! command -v gazebo &>/dev/null; then
     # Activer universe (nécessaire pour certaines dépendances Gazebo)
     sudo add-apt-repository universe -y
 
-    # Ajouter le dépôt officiel OSRF (Gazebo)
+    # Supprimer toute entrée OSRF conflictuelle existante
+    sudo rm -f /etc/apt/sources.list.d/gazebo-stable.list \
+               /etc/apt/sources.list.d/gazebo*.list \
+               /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+               /usr/share/keyrings/gazebo-archive-keyring.gpg
+
+    # Ajouter le dépôt officiel OSRF (Gazebo) avec clé unifiée
     sudo wget -q https://packages.osrfoundation.org/gazebo.key \
-        -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] \
+        -O /usr/share/keyrings/gazebo-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gazebo-archive-keyring.gpg] \
 http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
         | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
