@@ -86,6 +86,16 @@ def generate_launch_description():
         )
     ])
 
+    # t+2s : Bridge ROS2 cmd_vel → gz-harmonic (mouvement robot Gazebo)
+    gz_bridge = TimerAction(period=2.0, actions=[
+        Node(
+            package='hospital_robot_spawner',
+            executable='gz_bridge',
+            name='gz_cmd_bridge',
+            output='screen',
+        )
+    ])
+
     return LaunchDescription([
         rt_scheduler,
         dma,
@@ -93,6 +103,7 @@ def generate_launch_description():
         nav_bridge,
         mission,
         watchdog,
+        gz_bridge,
         doctor,
         dashboard,
     ])

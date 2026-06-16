@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>PharmaBot — Simulation 3D Robot</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0f1e; font-family:'Courier New',monospace; overflow:hidden; }
+  #canvas3d { position:fixed; top:0; left:0; width:100vw; height:100vh; }
+
+  /* ── PANEL GAUCHE ── */
+  #panel-left {
+    position:fixed; left:12px; top:12px; width:270px;
+    background:rgba(5,15,35,0.92); border:1px solid #1e3a5f;
+    border-radius:10px; padding:14px; color:#e0f0ff;
+    backdrop-filter:blur(8px); z-index:10;
+  }
+  #panel-left h2 {
+    color:#00d4ff; font-size:13px; letter-spacing:2px;
+    border-bottom:1px solid #1e3a5f; padding-bottom:8px; margin-bottom:10px;
+  }
+  .mission-box {
+    background:rgba(0,80,180,0.15); border:1px solid #1e4a8f;
+    border-radius:6px; padding:10px; margin-bottom:8px;
+  }
+  .mission-box .dept { font-size:14px; font-weight:bold; margin-bottom:4px; }
+  .mission-box .info { font-size:10px; color:#8ab4d4; line-height:1.6; }
+  .progress-wrap { margin-top:8px; }
+  .progress-label { font-size:10px; color:#8ab4d4; display:flex; justify-content:space-between; }
+  .progress-bar {
+    height:6px; background:#0a2a4a; border-radius:3px; margin-top:3px; overflow:hidden;
+  }
+  .progress-fill { height:100%; border-radius:3px; transition:width 0.3s; }
+
+  .queue-item {
+    display:flex; align-items:center; gap:8px;
+    padding:5px 8px; border-radius:4px; margin-bottom:4px;
+    background:rgba(255,255,255,0.04); font-size:10px; color:#8ab4d4;
+  }
+  .queue-item .badge {
+    font-size:9px; padding:2px 5px; border-radius:3px; font-weight:bold;
+  }
+
+  /* ── PANEL DROITE ── */
+  #panel-right {
+    position:fixed; right:12px; top:12px; width:240px;
+    background:rgba(5,15,35,0.92); border:1px solid #1e3a5f;
+    border-radius:10px; padding:14px; color:#e0f0ff;
+    backdrop-filter:blur(8px); z-index:10;
+  }
+  #panel-right h2 {
+    color:#00d4ff; font-size:13px; letter-spacing:2px;
+    border-bottom:1px solid #1e3a5f; padding-bottom:8px; margin-bottom:10px;
+  }
+  .kpi-row {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:9px; font-size:11px;
+  }
+  .kpi-label { color:#8ab4d4; }
+  .kpi-val { font-weight:bold; font-size:13px; }
+  .kpi-bar { width:70px; height:5px; background:#0a2a4a; border-radius:2px; overflow:hidden; margin-left:6px; }
+  .kpi-fill { height:100%; border-radius:2px; transition:width 0.5s; }
+
+  .stat-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;
+  }
+  .stat-cell {
+    background:rgba(0,80,180,0.12); border:1px solid #1e3a5f;
+    border-radius:6px; padding:8px; text-align:center;
+  }
+  .stat-cell .val { font-size:20px; font-weight:bold; color:#00d4ff; }
+  .stat-cell .lbl { font-size:9px; color:#8ab4d4; margin-top:2px; }
+
+  /* ── LOG BAS ── */
+  #panel-log {
+    position:fixed; left:12px; bottom:12px; width:calc(100vw - 24px);
+    background:rgba(5,15,35,0.88); border:1px solid #1e3a5f;
+    border-radius:8px; padding:10px 14px; z-index:10;
+    backdrop-filter:blur(8px); max-height:130px;
+  }
+  #panel-log h2 {
+    color:#00d4ff; font-size:11px; letter-spacing:2px;
+    margin-bottom:6px;
+  }
+  #log-entries { font-size:10px; line-height:1.7; }
+  .log-entry { color:#8ab4d4; }
+  .log-entry.ok    { color:#22ee88; }
+  .log-entry.warn  { color:#ffcc44; }
+  .log-entry.error { color:#ff4466; }
+  .log-entry.info  { color:#44aaff; }
+  .log-ts { color:#3a5a7a; margin-right:6px; }
+
+  /* ── HEADER ── */
+  #header {
+    position:fixed; top:12px; left:50%; transform:translateX(-50%);
+    background:rgba(5,15,35,0.92); border:1px solid #1e3a5f;
+    border-radius:8px; padding:8px 22px; z-index:10;
+    text-align:center; backdrop-filter:blur(8px);
+  }
+  #header h1 { color:#00d4ff; font-size:14px; letter-spacing:3px; }
+  #header p  { color:#8ab4d4; font-size:9px; margin-top:2px; }
+  #nav-state {
+    display:inline-block; padding:2px 10px; border-radius:4px;
+    font-size:11px; font-weight:bold; margin-top:4px;
+  }
+
+  /* ── LABELS SALLES (HTML overlay) ── */
+  .salle-label {
+    position:fixed; pointer-events:none;
+    background:rgba(5,15,35,0.75); border:1px solid #1e3a5f;
+    border-radius:5px; padding:4px 8px; font-size:10px; color:#8ab4d4;
+    display:none; z-index:5;
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas3d"></canvas>
+
+<!-- HEADER -->
+<div id="header">
+  <h1>🤖 PHARMABOT — SIMULATION 3D</h1>
+  <p>Ibn Tofaïl University | EDF + RMS + DMA | ROS2 Humble</p>
+  <div id="nav-state" style="background:#0a2a4a;color:#8ab4d4;">IDLE</div>
+</div>
+
+<!-- PANEL GAUCHE — Mission + File -->
+<div id="panel-left">
+  <h2>⚡ MISSION ACTIVE</h2>
+  <div id="mission-box" class="mission-box">
+    <div class="dept" id="m-dept" style="color:#8ab4d4;">En attente...</div>
+    <div class="info" id="m-info">Aucune mission en cours</div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Deadline</span><span id="m-time">—</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="m-bar" style="width:100%;background:#22ee88;"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:12px;">📋 FILE EDF</h2>
+  <div id="edf-queue"></div>
+</div>
+
+<!-- PANEL DROIT — KPIs -->
+<div id="panel-right">
+  <h2>📊 KPIs TEMPS RÉEL</h2>
+
+  <div class="kpi-row">
+    <span class="kpi-label">success_rate</span>
+    <span class="kpi-val" id="kpi-sr" style="color:#22ee88;">—</span>
+    <div class="kpi-bar"><div class="kpi-fill" id="kpi-sr-bar" style="background:#22ee88;width:0%"></div></div>
+  </div>
+  <div class="kpi-row">
+    <span class="kpi-label">nav_recovery</span>
+    <span class="kpi-val" id="kpi-nr" style="color:#22ee88;">—</span>
+    <div class="kpi-bar"><div class="kpi-fill" id="kpi-nr-bar" style="background:#22ee88;width:0%"></div></div>
+  </div>
+  <div class="kpi-row">
+    <span class="kpi-label">obstacle_avoid</span>
+    <span class="kpi-val" id="kpi-oa" style="color:#22ee88;">—</span>
+    <div class="kpi-bar"><div class="kpi-fill" id="kpi-oa-bar" style="background:#22ee88;width:0%"></div></div>
+  </div>
+  <div class="kpi-row">
+    <span class="kpi-label">delivery_acc</span>
+    <span class="kpi-val" id="kpi-da" style="color:#22ee88;">—</span>
+    <div class="kpi-bar"><div class="kpi-fill" id="kpi-da-bar" style="background:#22ee88;width:0%"></div></div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-cell">
+      <div class="val" id="s-total">0</div>
+      <div class="lbl">MISSIONS</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val" id="s-ok" style="color:#22ee88;">0</div>
+      <div class="lbl">SUCCÈS</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val" id="s-ovr" style="color:#ffcc44;">0</div>
+      <div class="lbl">OVERRIDES</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val" id="s-obs" style="color:#ff6644;">0</div>
+      <div class="lbl">OBSTACLES</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="panel-log">
+  <h2>📡 LOG SYSTÈME</h2>
+  <div id="log-entries"></div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SIMULATION 3D PHARMABOT — Three.js
+// ═══════════════════════════════════════════════════════════
+
+// ── Données salles (coordonnées réelles ROS2) ──────────────
+const SALLES = {
+  pharmacie:    { nom:"Pharmacie",    x:0,    z:0,    color:0x2266aa, emoji:"🏭", type:"BASE",    deadline:0   },
+  reanimation:  { nom:"Réanimation",  x:-8,   z:-8,   color:0xcc2222, emoji:"🔴", type:"HARD_RT", deadline:30  },
+  urgences:     { nom:"Urgences",     x:8,    z:-6,   color:0xddaa00, emoji:"🟡", type:"SOFT_RT", deadline:120 },
+  consultation: { nom:"Consultation", x:0,    z:-16,  color:0x22aa44, emoji:"🟢", type:"FIRM_RT", deadline:300 },
+};
+
+const MEDICAMENTS = {
+  reanimation:  ["Adrénaline 1mg","Morphine 10mg IV","Noradrénaline 5mg"],
+  urgences:     ["Morphine 10mg","Paracétamol IV 1g","Kétamine 50mg"],
+  consultation: ["Amoxicilline 500mg","Ibuprofène 400mg","Metformine 500mg"],
+};
+const MEDECINS = {
+  reanimation:  ["Dr. Alaoui","Dr. Benjelloun"],
+  urgences:     ["Dr. Driss","Dr. Fassi"],
+  consultation: ["Dr. Guessous","Dr. Hilali"],
+};
+const DEPTS = ["reanimation","urgences","consultation"];
+
+// ── États nav ─────────────────────────────────────────────
+const STATE_COLORS = {
+  IDLE:              { bg:"#0a2a4a", text:"#8ab4d4" },
+  PLANNING:          { bg:"#2a2a00", text:"#ffcc44" },
+  MOVING:            { bg:"#003a00", text:"#22ee88" },
+  AVOIDING_OBSTACLE: { bg:"#3a0000", text:"#ff4466" },
+  REPLANNING:        { bg:"#2a0a3a", text:"#cc88ff" },
+  GOAL_REACHED:      { bg:"#003a00", text:"#22ff88" },
+  RECOVERING:        { bg:"#2a1a00", text:"#ffaa22" },
+  FAILED:            { bg:"#3a0000", text:"#ff3333" },
+};
+
+// ── Stats ─────────────────────────────────────────────────
+let stats = {
+  total:0, ok:0, overrides:0, obstacles:0,
+  accuracy_sum:0, obstacles_detected:0, obstacles_avoided:0
+};
+let navState = "IDLE";
+let currentMission = null;
+let missionStartTime = null;
+let edfQueue = [];
+let logs = [];
+
+function addLog(msg, type="info") {
+  const now = new Date();
+  const ts  = now.toTimeString().slice(0,8);
+  logs.unshift({ ts, msg, type });
+  if (logs.length > 10) logs.pop();
+  renderLog();
+}
+
+function renderLog() {
+  const el = document.getElementById("log-entries");
+  el.innerHTML = logs.slice(0,7).map(l =>
+    `<div class="log-entry ${l.type}"><span class="log-ts">[${l.ts}]</span> ${l.msg}</div>`
+  ).join("");
+}
+
+// ── Three.js setup ─────────────────────────────────────────
+const canvas = document.getElementById("canvas3d");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x040810);
+scene.fog = new THREE.Fog(0x040810, 40, 100);
+
+// Caméra
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 200);
+camera.position.set(0, 28, 20);
+camera.lookAt(0, 0, -5);
+
+// Lumières
+const ambientLight = new THREE.AmbientLight(0x112233, 1.0);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(10, 20, 10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048,2048);
+dirLight.shadow.camera.near = 0.5;
+dirLight.shadow.camera.far = 80;
+dirLight.shadow.camera.left = -30;
+dirLight.shadow.camera.right = 30;
+dirLight.shadow.camera.top = 30;
+dirLight.shadow.camera.bottom = -30;
+scene.add(dirLight);
+
+const fillLight = new THREE.PointLight(0x0044aa, 0.8, 60);
+fillLight.position.set(-10, 15, 5);
+scene.add(fillLight);
+
+// ── SOL HÔPITAL ───────────────────────────────────────────
+function makePlane(w, d, color, x, y, z, opacity=1) {
+  const geo  = new THREE.BoxGeometry(w, 0.15, d);
+  const mat  = new THREE.MeshLambertMaterial({
+    color, transparent:opacity<1, opacity
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+// Sol principal
+const floor = makePlane(50, 40, 0x0a1525, 0, 0, -5);
+scene.add(floor);
+
+// Grille sur le sol
+const gridHelper = new THREE.GridHelper(50, 25, 0x1a3a5a, 0x0d2035);
+gridHelper.position.y = 0.09;
+gridHelper.position.z = -5;
+scene.add(gridHelper);
+
+// ── ZONES DÉPARTEMENTS ────────────────────────────────────
+const deptMeshes = {};
+Object.entries(SALLES).forEach(([key, s]) => {
+  const zone = makePlane(9, 9, s.color, s.x, 0.1, s.z, 0.35);
+  scene.add(zone);
+  deptMeshes[key] = zone;
+
+  // Contour lumineux
+  const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(9, 0.2, 9));
+  const line  = new THREE.LineSegments(edges,
+    new THREE.LineBasicMaterial({color: s.color, linewidth:2}));
+  line.position.set(s.x, 0.15, s.z);
+  scene.add(line);
+});
+
+// ── MURS ─────────────────────────────────────────────────
+function makeWall(w, h, d, color, x, y, z) {
+  const geo  = new THREE.BoxGeometry(w, h, d);
+  const mat  = new THREE.MeshLambertMaterial({ color });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  return mesh;
+}
+// Murs extérieurs
+const wallMat = 0x0d2238;
+scene.add(makeWall(50, 3, 0.4, wallMat,  0, 1.5,  15));  // haut
+scene.add(makeWall(50, 3, 0.4, wallMat,  0, 1.5, -25));  // bas
+scene.add(makeWall(0.4, 3, 42, wallMat, -25,1.5,  -5));  // gauche
+scene.add(makeWall(0.4, 3, 42, wallMat,  25,1.5,  -5));  // droite
+// Cloisons intérieures
+scene.add(makeWall(20, 2.5, 0.3, 0x0c1e30, -5, 1.25, -1));
+scene.add(makeWall(0.3, 2.5, 10, 0x0c1e30,  3, 1.25,  5));
+
+// ── PLAFOND LUMINEUX ──────────────────────────────────────
+const ceilMat = new THREE.MeshBasicMaterial({color:0x001122, transparent:true, opacity:0.6});
+const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(50,40), ceilMat);
+ceiling.rotation.x = Math.PI/2;
+ceiling.position.set(0, 3.5, -5);
+scene.add(ceiling);
+
+// Spots plafond
+function addSpot(x, z, color=0x4488ff, intensity=0.4) {
+  const light = new THREE.PointLight(color, intensity, 15);
+  light.position.set(x, 3.2, z);
+  scene.add(light);
+  // Rond lumineux au sol
+  const geo = new THREE.CircleGeometry(1.2, 16);
+  const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.06, side:THREE.DoubleSide});
+  const disc = new THREE.Mesh(geo, mat);
+  disc.rotation.x = -Math.PI/2;
+  disc.position.set(x, 0.2, z);
+  scene.add(disc);
+}
+addSpot(-8, -8,  0xff4444, 0.5);   // réanimation
+addSpot( 8, -6,  0xffcc00, 0.4);   // urgences
+addSpot( 0, -16, 0x44ff88, 0.4);   // consultation
+addSpot( 0,  0,  0x4466ff, 0.3);   // pharmacie
+
+// ── ROBOT PIONEER 3AT ─────────────────────────────────────
+const robotGroup = new THREE.Group();
+
+// Corps principal
+const bodyGeo  = new THREE.BoxGeometry(1.2, 0.5, 1.8);
+const bodyMat  = new THREE.MeshLambertMaterial({ color:0x223355 });
+const body     = new THREE.Mesh(bodyGeo, bodyMat);
+body.castShadow = true;
+body.position.y = 0.55;
+robotGroup.add(body);
+
+// Dessus gris avec détails
+const topGeo = new THREE.BoxGeometry(1.0, 0.12, 1.4);
+const topMat = new THREE.MeshLambertMaterial({ color:0x334466 });
+const topPart = new THREE.Mesh(topGeo, topMat);
+topPart.position.set(0, 0.83, 0);
+robotGroup.add(topPart);
+
+// Capteur LiDAR (cylindre rouge)
+const lidarGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.18, 16);
+const lidarMat = new THREE.MeshLambertMaterial({ color:0xff2222, emissive:0x880000, emissiveIntensity:0.8 });
+const lidar    = new THREE.Mesh(lidarGeo, lidarMat);
+lidar.position.set(0, 1.0, 0.3);
+robotGroup.add(lidar);
+
+// Antenne
+const antGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.6, 6);
+const antMat = new THREE.MeshLambertMaterial({ color:0x88aaff });
+const ant    = new THREE.Mesh(antGeo, antMat);
+ant.position.set(0.4, 1.1, -0.5);
+robotGroup.add(ant);
+
+// Voyant LED clignotant
+const ledGeo = new THREE.SphereGeometry(0.07, 8, 8);
+const ledMat = new THREE.MeshBasicMaterial({ color:0x00ff88 });
+const led    = new THREE.Mesh(ledGeo, ledMat);
+led.position.set(0, 1.0, 0.95);
+robotGroup.add(led);
+
+// 4 Roues
+const wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.25, 16);
+const wheelMat = new THREE.MeshLambertMaterial({ color:0x1a1a1a });
+const wheelPositions = [
+  [-0.72, 0.32, -0.65], [0.72, 0.32, -0.65],
+  [-0.72, 0.32,  0.65], [0.72, 0.32,  0.65],
+];
+const wheels = [];
+wheelPositions.forEach(([wx,wy,wz]) => {
+  const w = new THREE.Mesh(wheelGeo, wheelMat);
+  w.rotation.z = Math.PI/2;
+  w.position.set(wx, wy, wz);
+  w.castShadow = true;
+  robotGroup.add(w);
+  wheels.push(w);
+});
+
+// Lumière frontale du robot
+const headLight = new THREE.SpotLight(0x00aaff, 1.5, 8, Math.PI/6, 0.4);
+headLight.position.set(0, 0.8, 0.95);
+robotGroup.add(headLight);
+const headLightTarget = new THREE.Object3D();
+headLightTarget.position.set(0, 0, 3);
+robotGroup.add(headLightTarget);
+headLight.target = headLightTarget;
+
+// Halo position sol
+const haloGeo = new THREE.CircleGeometry(0.9, 16);
+const haloMat = new THREE.MeshBasicMaterial({color:0x0044ff, transparent:true, opacity:0.15, side:THREE.DoubleSide});
+const halo    = new THREE.Mesh(haloGeo, haloMat);
+halo.rotation.x = -Math.PI/2;
+halo.position.y = 0.05;
+robotGroup.add(halo);
+
+robotGroup.position.set(0, 0, 0);
+scene.add(robotGroup);
+
+// ── PARTICULES (traîné du robot) ─────────────────────────
+const trailGeo   = new THREE.BufferGeometry();
+const trailCount = 40;
+const trailPos   = new Float32Array(trailCount * 3);
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
+const trailMat   = new THREE.PointsMaterial({color:0x0088ff, size:0.12, transparent:true, opacity:0.5});
+const trail      = new THREE.Points(trailGeo, trailMat);
+scene.add(trail);
+let trailIndex   = 0;
+let trailArr     = Array(trailCount).fill().map(()=>({x:0,y:0.3,z:0}));
+
+// ── LABELS 3D SALLES ──────────────────────────────────────
+// (Sprites simples)
+function makeSprite(text, color=0xffffff) {
+  const canvas2 = document.createElement('canvas');
+  canvas2.width  = 256; canvas2.height = 64;
+  const ctx = canvas2.getContext('2d');
+  ctx.fillStyle = 'rgba(5,15,35,0.8)';
+  ctx.roundRect ? ctx.roundRect(4,4,248,56,8) : ctx.fillRect(4,4,248,56);
+  ctx.fill();
+  ctx.font = 'bold 22px Courier New';
+  ctx.fillStyle = '#' + color.toString(16).padStart(6,'0');
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 128, 38);
+  const tex  = new THREE.CanvasTexture(canvas2);
+  const mat  = new THREE.SpriteMaterial({ map:tex, transparent:true });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(4, 1, 1);
+  return sprite;
+}
+
+Object.entries(SALLES).forEach(([key, s]) => {
+  const color = {pharmacie:0x4488ff, reanimation:0xff4444, urgences:0xffcc44, consultation:0x44ee88}[key];
+  const sp = makeSprite(`${s.emoji} ${s.nom}`, color);
+  sp.position.set(s.x, 2.8, s.z);
+  scene.add(sp);
+});
+
+// ── CHEMIN DU ROBOT ───────────────────────────────────────
+let pathLine = null;
+function showPath(from, to) {
+  if (pathLine) { scene.remove(pathLine); pathLine = null; }
+  const points = [
+    new THREE.Vector3(from.x, 0.3, from.z),
+    new THREE.Vector3(from.x, 0.3, (from.z+to.z)/2),
+    new THREE.Vector3(to.x,   0.3, (from.z+to.z)/2),
+    new THREE.Vector3(to.x,   0.3, to.z),
+  ];
+  const curve = new THREE.CatmullRomCurve3(points);
+  const pts   = curve.getPoints(60);
+  const geo   = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat   = new THREE.LineBasicMaterial({color:0x00aaff, transparent:true, opacity:0.5});
+  pathLine    = new THREE.Line(geo, mat);
+  scene.add(pathLine);
+}
+
+// ── NAVIGATION (TWEEN maison) ─────────────────────────────
+let robotPos = { x:0, z:0 };
+let targetPos = { x:0, z:0 };
+let animating = false;
+let animStart, animDuration, animFromX, animFromZ;
+
+function startNav(toX, toZ, duration) {
+  animFromX = robotPos.x; animFromZ = robotPos.z;
+  targetPos = { x:toX, z:toZ };
+  animStart = performance.now();
+  animDuration = duration;
+  animating = true;
+  showPath({x:animFromX, z:animFromZ}, {x:toX, z:toZ});
+}
+
+function easeInOut(t) {
+  return t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+}
+
+// ── CAMÉRA suivi robot ────────────────────────────────────
+let camTarget = new THREE.Vector3(0, 0, -5);
+let camOffset = new THREE.Vector3(0, 28, 20);
+
+// ── MISSION LOGIC ─────────────────────────────────────────
+let busy = false;
+
+function setNavState(state) {
+  navState = state;
+  const cfg = STATE_COLORS[state] || STATE_COLORS.IDLE;
+  const el  = document.getElementById("nav-state");
+  el.style.background = cfg.bg;
+  el.style.color = cfg.text;
+  el.textContent = state;
+  // Couleur LED
+  const colors = {IDLE:0x888888, PLANNING:0xffcc00, MOVING:0x00ff88,
+    AVOIDING_OBSTACLE:0xff2200, REPLANNING:0xcc44ff, GOAL_REACHED:0x00ffcc,
+    RECOVERING:0xffaa00, FAILED:0xff0000};
+  ledMat.color.setHex(colors[state] || 0x888888);
+}
+
+function updateMissionUI() {
+  if (!currentMission) {
+    document.getElementById("m-dept").textContent = "En attente...";
+    document.getElementById("m-dept").style.color = "#8ab4d4";
+    document.getElementById("m-info").textContent = "Aucune mission en cours";
+    document.getElementById("m-time").textContent = "—";
+    document.getElementById("m-bar").style.width = "100%";
+    document.getElementById("m-bar").style.background = "#1e3a5f";
+    return;
+  }
+  const s = SALLES[currentMission.dept];
+  const colors = {HARD_RT:"#ff4444", SOFT_RT:"#ffcc44", FIRM_RT:"#44ee88"};
+  document.getElementById("m-dept").textContent = `${s.emoji} ${s.nom.toUpperCase()}`;
+  document.getElementById("m-dept").style.color = colors[s.type] || "#fff";
+  document.getElementById("m-info").innerHTML =
+    `💊 ${currentMission.med}<br>👨‍⚕️ ${currentMission.doc}<br>⏱ ${s.type} — Deadline: ${s.deadline}s`;
+}
+
+function updateQueueUI() {
+  const el = document.getElementById("edf-queue");
+  if (edfQueue.length === 0) {
+    el.innerHTML = `<div style="color:#3a5a7a;font-size:10px;padding:4px;">File vide</div>`;
+    return;
+  }
+  const colors = {HARD_RT:"#cc2222", SOFT_RT:"#ddaa00", FIRM_RT:"#22aa44"};
+  el.innerHTML = edfQueue.slice(0,4).map((m,i) => {
+    const s = SALLES[m.dept];
+    const c = colors[s.type];
+    return `<div class="queue-item">
+      <span class="badge" style="background:${c}22;color:${c};">${s.type}</span>
+      <span>${s.emoji} ${m.dept}</span>
+      <span style="margin-left:auto;color:${c}">${s.deadline}s</span>
+    </div>`;
+  }).join("");
+}
+
+function updateKPIs() {
+  const sr = stats.total > 0 ? (stats.ok/stats.total*100) : 0;
+  const nr = 100;
+  const oa = stats.obstacles_detected > 0
+    ? (stats.obstacles_avoided/stats.obstacles_detected*100) : 100;
+  const da = stats.total > 0
+    ? (stats.accuracy_sum/stats.ok*100) : 0;
+
+  function setKPI(id, barId, val, threshold=95) {
+    const col = val >= threshold ? "#22ee88" : val >= 80 ? "#ffcc44" : "#ff4466";
+    document.getElementById(id).textContent = val.toFixed(0)+"%";
+    document.getElementById(id).style.color = col;
+    document.getElementById(barId).style.width = val+"%";
+    document.getElementById(barId).style.background = col;
+  }
+  setKPI("kpi-sr", "kpi-sr-bar", sr);
+  setKPI("kpi-nr", "kpi-nr-bar", nr, 90);
+  setKPI("kpi-oa", "kpi-oa-bar", oa, 98);
+  setKPI("kpi-da", "kpi-da-bar", da, 95);
+
+  document.getElementById("s-total").textContent = stats.total;
+  document.getElementById("s-ok").textContent    = stats.ok;
+  document.getElementById("s-ovr").textContent   = stats.overrides;
+  document.getElementById("s-obs").textContent   = stats.obstacles;
+}
+
+// ── DÉROULEMENT D'UNE MISSION ─────────────────────────────
+function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
+
+async function executerMission(dept) {
+  busy = true;
+  const s   = SALLES[dept];
+  const med = MEDICAMENTS[dept][Math.floor(Math.random()*MEDICAMENTS[dept].length)];
+  const doc = MEDECINS[dept][Math.floor(Math.random()*MEDECINS[dept].length)];
+
+  currentMission = { dept, med, doc };
+  stats.total++;
+  missionStartTime = Date.now();
+  updateMissionUI();
+
+  addLog(`📋 REQUÊTE ${s.emoji} ${dept.toUpperCase()} — ${med}`, "info");
+  addLog(`   Médecin: ${doc} | ${s.type} | Deadline: ${s.deadline}s`, "info");
+
+  // PLANNING
+  setNavState("PLANNING");
+  await sleep(600);
+  addLog(`🗺️  EDF planifie chemin → ${s.nom} (${s.x}, ${s.z})`, "warn");
+
+  // Départ pharmacie → destination
+  setNavState("MOVING");
+  const fromS = SALLES.pharmacie;
+  startNav(s.x, s.z, 4000);
+  addLog(`🚀 Navigation MOVING vers ${s.nom}`, "ok");
+
+  // Attendre fin animation
+  let stepsDone = 0;
+  while (animating) {
+    // Obstacle aléatoire au milieu du trajet
+    const prog = animStart ? (performance.now()-animStart)/animDuration : 0;
+    if (prog > 0.3 && prog < 0.7 && Math.random() < 0.002) {
+      setNavState("AVOIDING_OBSTACLE");
+      stats.obstacles++;
+      stats.obstacles_detected++;
+      stats.obstacles_avoided++;
+      addLog("⚠️  Obstacle détecté ! Évitement...", "error");
+      updateKPIs();
+      await sleep(800);
+      setNavState("REPLANNING");
+      addLog("🔄 Replanification...", "warn");
+      await sleep(400);
+      setNavState("MOVING");
+    }
+    await sleep(50);
+  }
+
+  // Arrivée
+  setNavState("GOAL_REACHED");
+  const elapsed = (Date.now()-missionStartTime)/1000;
+  const ok = elapsed <= s.deadline;
+  stats.ok++;
+  const accuracy = 0.95 + Math.random()*0.04;
+  stats.accuracy_sum += accuracy;
+  updateKPIs();
+
+  addLog(`✅ LIVRAISON confirmée — ${s.nom} — ${elapsed.toFixed(1)}s / ${s.deadline}s`, "ok");
+  if (!ok) addLog(`⚠️  Deadline dépassée (${elapsed.toFixed(0)}s > ${s.deadline}s)`, "warn");
+
+  // Clignotement zone arrivée
+  const zone = deptMeshes[dept];
+  for (let i=0; i<6; i++) {
+    zone.material.opacity = i%2===0 ? 0.8 : 0.25;
+    await sleep(200);
+  }
+  zone.material.opacity = 0.35;
+
+  await sleep(500);
+
+  // Retour pharmacie
+  setNavState("MOVING");
+  startNav(fromS.x, fromS.z, 3000);
+  addLog("↩️  Retour pharmacie...", "info");
+  while (animating) await sleep(50);
+
+  setNavState("IDLE");
+  currentMission = null;
+  missionStartTime = null;
+  updateMissionUI();
+  updateKPIs();
+
+  if (pathLine) { scene.remove(pathLine); pathLine = null; }
+  busy = false;
+}
+
+// ── GÉNÉRATEUR DE MISSIONS ────────────────────────────────
+async function generateur() {
+  await sleep(2000);
+
+  // Scénario fixe pour démo claire
+  const scenario = [
+    "consultation","urgences","reanimation",
+    "consultation","reanimation","urgences",
+    "consultation","urgences","reanimation",
+  ];
+  let idx = 0;
+
+  while(true) {
+    if (!busy) {
+      const dept = scenario[idx % scenario.length];
+      idx++;
+
+      // Override HARD_RT simulation
+      if (idx % 3 === 0 && dept !== "reanimation" && !busy) {
+        await sleep(300);
+        if (!busy) {
+          edfQueue.unshift({dept:"reanimation"});
+          updateQueueUI();
+          await sleep(400);
+          stats.overrides++;
+          updateKPIs();
+          addLog("⚡ HARD_RT OVERRIDE — Réanimation prioritaire !", "error");
+          edfQueue = edfQueue.filter(q => q.dept !== "reanimation");
+          await executerMission("reanimation");
+          continue;
+        }
+      }
+
+      edfQueue.push({dept});
+      // Trier EDF par deadline croissante
+      edfQueue.sort((a,b) => SALLES[a.dept].deadline - SALLES[b.dept].deadline);
+      updateQueueUI();
+      await sleep(500);
+      const next = edfQueue.shift();
+      updateQueueUI();
+      if (next) await executerMission(next.dept);
+    }
+    await sleep(800);
+  }
+}
+
+// ── MISE À JOUR DEADLINE BAR ──────────────────────────────
+function updateDeadlineBar() {
+  if (!currentMission || !missionStartTime) return;
+  const s = SALLES[currentMission.dept];
+  const elapsed = (Date.now()-missionStartTime)/1000;
+  const pct = Math.max(0, (1 - elapsed/s.deadline)*100);
+  const col = pct > 50 ? "#22ee88" : pct > 20 ? "#ffcc44" : "#ff4466";
+  document.getElementById("m-bar").style.width = pct+"%";
+  document.getElementById("m-bar").style.background = col;
+  document.getElementById("m-time").textContent = `${Math.max(0,s.deadline-elapsed).toFixed(0)}s restantes`;
+}
+
+// ── ANIMATION LOOP ────────────────────────────────────────
+let clock = 0;
+function animate(now) {
+  requestAnimationFrame(animate);
+  clock = now * 0.001;
+
+  // Animation navigation
+  if (animating) {
+    const t = Math.min((now - animStart) / animDuration, 1);
+    const e = easeInOut(t);
+    robotPos.x = animFromX + (targetPos.x - animFromX) * e;
+    robotPos.z = animFromZ + (targetPos.z - animFromZ) * e;
+    if (t >= 1) { animating = false; robotPos = {...targetPos}; }
+
+    // Orientation robot vers destination
+    const dx = targetPos.x - robotPos.x;
+    const dz = targetPos.z - robotPos.z;
+    if (Math.abs(dx)+Math.abs(dz) > 0.01) {
+      const angle = Math.atan2(dx, dz);
+      robotGroup.rotation.y += (angle - robotGroup.rotation.y) * 0.08;
+    }
+  }
+
+  // Position robot
+  robotGroup.position.x = robotPos.x;
+  robotGroup.position.z = robotPos.z;
+  robotGroup.position.y = 0;
+
+  // Roues qui tournent (si en mouvement)
+  if (animating) {
+    wheels.forEach(w => w.rotation.y += 0.18);
+  }
+
+  // LiDAR tourne toujours
+  lidar.rotation.y = clock * 3;
+
+  // LED clignote
+  led.material.opacity = 0.5 + 0.5 * Math.sin(clock * 4);
+
+  // Halo pulse
+  halo.material.opacity = 0.05 + 0.10 * Math.sin(clock * 2);
+  haloMat.color.setHex(navState==="GOAL_REACHED" ? 0x00ff88 :
+                       navState==="AVOIDING_OBSTACLE" ? 0xff2200 : 0x0044ff);
+
+  // Trail
+  if (animating) {
+    trailArr[trailIndex % trailCount] = {
+      x: robotPos.x + (Math.random()-0.5)*0.1,
+      y: 0.15 + Math.random()*0.1,
+      z: robotPos.z + (Math.random()-0.5)*0.1
+    };
+    trailIndex++;
+  }
+  for (let i=0; i<trailCount; i++) {
+    const p = trailArr[i];
+    trailPos[i*3]   = p.x;
+    trailPos[i*3+1] = p.y;
+    trailPos[i*3+2] = p.z;
+  }
+  trailGeo.attributes.position.needsUpdate = true;
+  trailMat.opacity = animating ? 0.4 : 0;
+
+  // Caméra suit robot en douceur
+  camTarget.x += (robotPos.x - camTarget.x) * 0.02;
+  camTarget.z += (robotPos.z - 5 - camTarget.z) * 0.02;
+  camera.position.x += (camTarget.x - camera.position.x) * 0.02;
+  camera.position.z += (camTarget.z + 22 - camera.position.z) * 0.02;
+  camera.lookAt(camTarget.x, 0, camTarget.z);
+
+  // Lumière fill pulse
+  fillLight.intensity = 0.7 + 0.15*Math.sin(clock*0.5);
+
+  // Deadline bar
+  updateDeadlineBar();
+
+  renderer.render(scene, camera);
+}
+
+// ── RESIZE ────────────────────────────────────────────────
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── DÉMARRAGE ─────────────────────────────────────────────
+addLog("🏥 PharmaBot démarré — Hôpital Ibn Tofaïl", "ok");
+addLog("   EDF Scheduler | Navigation P3 | Phase 4 en ligne", "info");
+addLog("   Robot Pioneer 3AT positionné à Pharmacie (0, 0)", "info");
+
+animate(0);
+generateur();
+</script>
+</body>
+</html>

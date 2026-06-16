@@ -76,6 +76,8 @@ setup(
             'nav2_navigator  = hospital_robot_spawner.nav2_navigator:main',
             # ── Visualisation 2D soutenance (sans Gazebo) ──
             'visual_demo     = hospital_robot_spawner.demo_visual:main',
+            # ── Bridge ROS2 → gz-harmonic (mouvement robot) ──
+            'gz_bridge       = hospital_robot_spawner.gz_cmd_bridge:main',
         ],
     },
 )
