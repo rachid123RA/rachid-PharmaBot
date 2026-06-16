@@ -74,6 +74,8 @@ setup(
             'gazebo_bridge   = hospital_robot_spawner.pharmabot_gazebo_bridge:main',
             # ── Nav2 Navigator (navigation VM sans Docker) ──
             'nav2_navigator  = hospital_robot_spawner.nav2_navigator:main',
+            # ── Visualisation 2D soutenance (sans Gazebo) ──
+            'visual_demo     = hospital_robot_spawner.demo_visual:main',
         ],
     },
 )
