@@ -101,12 +101,26 @@ source /opt/ros/humble/setup.bash
 # ÉTAPE 5 — Gazebo Classic 11
 # ════════════════════════════════════════════════════════════════════
 if ! command -v gazebo &>/dev/null; then
-    log "ÉTAPE 5 — Installation Gazebo Classic 11"
-    sudo apt-get install -y \
-        gazebo \
-        ros-humble-gazebo-ros-pkgs \
-        ros-humble-gazebo-ros \
-        ros-humble-gazebo-plugins
+    log "ÉTAPE 5 — Ajout dépôt OSRF + Gazebo Classic 11"
+
+    # Activer universe (nécessaire pour certaines dépendances Gazebo)
+    sudo add-apt-repository universe -y
+
+    # Ajouter le dépôt officiel OSRF (Gazebo)
+    sudo wget -q https://packages.osrfoundation.org/gazebo.key \
+        -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] \
+http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+        | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+
+    sudo apt-get update -qq
+
+    # Gazebo Classic 11
+    sudo apt-get install -y gazebo libgazebo11-dev
+
+    # Packages ROS2 ↔ Gazebo (inclut ros-humble-gazebo-ros et plugins)
+    sudo apt-get install -y ros-humble-gazebo-ros-pkgs
+
     ok "Gazebo Classic 11 installé"
 else
     ok "Gazebo déjà installé : $(gazebo --version 2>&1 | head -1)"
