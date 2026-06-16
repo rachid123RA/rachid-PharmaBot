@@ -35,6 +35,8 @@ def generate_launch_description():
     map_file   = os.path.join(pkg_dir, 'maps', 'hospital_map.yaml')
     nav2_cfg   = os.path.join(pkg_dir, 'config', 'nav2_params.yaml')
 
+    robot_sdf = os.path.join(pkg_dir, 'models', 'pioneer3at', 'model.sdf')
+
     # ── Gazebo Classic t+0s ──────────────────────────────────────
     gazebo = ExecuteProcess(
         cmd=[
@@ -44,6 +46,20 @@ def generate_launch_description():
         ],
         output='screen',
     )
+
+    # ── Spawn robot Pioneer 3AT t+2s ─────────────────────────────
+    spawn_robot = TimerAction(period=2.0, actions=[
+        ExecuteProcess(
+            cmd=[
+                'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
+                '-file', robot_sdf,
+                '-entity', 'demo',
+                '-x', '1.0', '-y', '16.0', '-z', '0.3',
+                '-Y', '-1.5708',
+            ],
+            output='screen',
+        )
+    ])
 
     # ── Map Server t+4s ──────────────────────────────────────────
     map_server = TimerAction(period=4.0, actions=[
@@ -222,6 +238,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         gazebo,
+        spawn_robot,
         map_server,
         lifecycle_map,
         nav2,
