@@ -90,8 +90,8 @@ def generate_launch_description():
         )
     ])
 
-    # ── Nav2 (AMCL + planner + controller) t+5s ─────────────────
-    nav2 = TimerAction(period=5.0, actions=[
+    # ── Nav2 (AMCL + planner + controller) t+8s ─────────────────
+    nav2 = TimerAction(period=8.0, actions=[
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(nav2_dir, 'launch', 'navigation_launch.py')
@@ -104,8 +104,8 @@ def generate_launch_description():
         )
     ])
 
-    # ── AMCL t+5s ────────────────────────────────────────────────
-    amcl = TimerAction(period=5.0, actions=[
+    # ── AMCL t+8s ────────────────────────────────────────────────
+    amcl = TimerAction(period=8.0, actions=[
         Node(
             package='nav2_amcl',
             executable='amcl',
@@ -116,8 +116,8 @@ def generate_launch_description():
         )
     ])
 
-    # ── Lifecycle Manager Nav2 t+6s ──────────────────────────────
-    lifecycle_nav = TimerAction(period=6.0, actions=[
+    # ── Lifecycle Manager Nav2 t+10s ─────────────────────────────
+    lifecycle_nav = TimerAction(period=10.0, actions=[
         Node(
             package='nav2_lifecycle_manager',
             executable='lifecycle_manager',
